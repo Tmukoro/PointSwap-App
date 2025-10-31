@@ -4,15 +4,63 @@ import AppleIcon from "@/components/SvgIcons/appleIcon";
 import FacebookIcon from "@/components/SvgIcons/facebookIcon";
 import GoogleIcon from "@/components/SvgIcons/googleIcon";
 import RectangleIcon from "@/components/rectangle";
+import { RegistrationResponse } from "@/types/auth";
 
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import { Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+
 
 export default function RegistrationScreen (){
 
+ const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/register";
+
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+
+
+
+   const RegistrationFunction = async () => {
+
+     let RegReq = {
+       email : email,
+       password: password
+     };
+    
+    
+     try {
+       const response = await axios.post<RegistrationResponse>(apiUrl, RegReq, {
+         headers : {"Content-Type": "application/json"}
+       });
+
+       const token = response.data.data.token
+
+       const userEmail = response.data.data.user.email
+
+       await AsyncStorage.setItem("token", token)
+       await AsyncStorage.setItem("userEmail", userEmail)
+
+       router.push('/profile')
+
+    } catch(error){
+
+       console.log(error)
+    }
+
+
+   }
+
+
+
+
+
     const router = useRouter();
+
+
     return(
 
         <View style={styles.container}>
@@ -36,17 +84,21 @@ export default function RegistrationScreen (){
             <View style={styles.InputContainer1}>
             <Text style={styles.InputText1}>Email</Text>
             <SmsIcon style={styles.smsicon} />
-            <TextInput style={{width: '82%'}} placeholder="Emmanuel6@gmail.com"></TextInput>
+            <TextInput style={{width: '82%'}} placeholder="Emmanuel6@gmail.com"
+            value={email} onChangeText={setEmail}
+            ></TextInput>
             </View>
 
 
            <View style={styles.InputContainer2}>
            <Text style={styles.InputText2}>Password</Text>
            <LockIcon style={styles.lockicon} />
-           <TextInput placeholder="•••••••••••••" secureTextEntry = {true} style={{fontWeight: 'bold', width:'82%'}}></TextInput>
+           <TextInput placeholder="•••••••••••••" secureTextEntry = {true} style={{fontWeight: 'bold', width:'82%'}}
+           value={password} onChangeText={setPassword}
+           ></TextInput>
            </View>
            
-           <TouchableOpacity style={styles.InputButton} onPress={()=> router.navigate('/location')}>
+           <TouchableOpacity style={styles.InputButton} onPress={RegistrationFunction}>
             <Text style={{textAlign: 'center', color: 'white'}}>Continue with email</Text>
            </TouchableOpacity>
               
@@ -65,7 +117,7 @@ export default function RegistrationScreen (){
           </View>
 
 
-
+         <View style={styles.optionContainer}>
           {/* APPLE BOX */}
 
           <View style={{marginTop: 50}}>
@@ -95,10 +147,12 @@ export default function RegistrationScreen (){
 
           </View>
 
+          </View>
+
 
           {/* TOS BOX */}
 
-          <View style={{marginTop: 55, width: 345}}>
+          <View style={{width: '90%', margin: 'auto'}}>
             <Text style={{color: '#292929', fontWeight: '400'}}>By continuing, you acknowledge that you have read and understood, 
             and agree to Pointswaps <Text onPress={()=> Linking.openURL('www.example.com')} style={styles.tostxt}>
             Terms of Service</Text> and <Text onPress={()=> Linking.openURL} style={styles.tostxt}>Privacy Policy</Text>.
@@ -133,7 +187,7 @@ const styles = StyleSheet.create({
         padding: 0,
         margin: 0,
         backgroundColor: '#ffff',
-        height: '100%'
+        height: '100%',
     },
 
     GSbox :{
@@ -214,6 +268,13 @@ const styles = StyleSheet.create({
       borderRadius: 8
     },
 
+    optionContainer : {
+      alignSelf: 'center',
+      outline: '1px solid',
+      marginTop: 14,
+      width: '90%'
+    },
+
     UVbox :{
       flexDirection: 'row',
       alignItems: 'center',
@@ -228,8 +289,8 @@ const styles = StyleSheet.create({
       borderColor: '#c9c9c9',
       paddingTop: 14,
       paddingBottom: 14,
-      paddingLeft: 95,
-      paddingRight: 95,
+      width: '100%',
+      justifyContent: 'center',
       borderRadius: 8,
     },
 
@@ -240,10 +301,10 @@ const styles = StyleSheet.create({
       borderColor: '#c9c9c9',
       paddingTop: 14,
       paddingBottom: 14,
-      paddingLeft: 27,
-      paddingRight: 27,
+      width: '45%',
       gap: 8,
-      borderRadius: 8
+      borderRadius: 8,
+      justifyContent: 'center'
     },
 
     fgbox2: {
@@ -253,10 +314,10 @@ const styles = StyleSheet.create({
       borderColor: '#c9c9c9',
       paddingTop: 14,
       paddingBottom: 14,
-      paddingLeft: 44,
-      paddingRight: 44,
+      width: '46%',
       gap: 8,
-      borderRadius: 8
+      borderRadius: 8,
+      justifyContent: 'center'
     },
 
     tostxt :{

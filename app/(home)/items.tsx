@@ -1,12 +1,15 @@
 import AddItemIcon from "@/components/SvgIcons/addItemsIcon";
 
 
+import { useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 
 
 
 export default function AdditemsScreen (){
+
+    const route = useRouter();
 
     return(
 
@@ -31,7 +34,7 @@ export default function AdditemsScreen (){
 
         <View style={styles.optionbutton}>
 
-        <TouchableOpacity style={styles.button1}>
+        <TouchableOpacity style={styles.button1} onPress={()=>route.navigate('/(tabs)/home')} >
           <Text style={{color: '#6734F2', fontSize: 14, fontWeight: '600'}}>Maybe later</Text>
         </TouchableOpacity>
 

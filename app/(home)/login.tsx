@@ -4,9 +4,13 @@ import FacebookIcon from "@/components/SvgIcons/facebookIcon";
 import GoogleIcon from "@/components/SvgIcons/googleIcon";
 import LockIcon from "@/components/SvgIcons/LockIcon";
 import SmsIcon from "@/components/SvgIcons/SmsIcon";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
+import { useState } from "react";
 
 
+import { LoginResponse } from "@/types/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 
@@ -16,6 +20,49 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-nativ
 
 
 export default function LoginScreen(){
+
+  const router = useRouter();
+
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const LoginFunction = async () => {
+
+
+
+    const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/login";
+
+    let loginReq = {
+      email : email,
+      password: password
+    }
+
+    try {
+      const response = await axios.post<LoginResponse>(apiUrl, loginReq, {
+        headers : {"Content-Type" : "application/json"}
+      });
+
+      const token = response.data.data.token
+
+      const firstName =  response.data.data.user.first_name
+
+      await AsyncStorage.setItem("token", token)
+
+      await AsyncStorage.setItem("first_name", firstName)
+
+      router.push('/home')
+
+
+    } catch(error){
+      console.log(error)
+    }
+
+  }
+
+
+
+
 
     return(
 
@@ -40,14 +87,18 @@ export default function LoginScreen(){
             <View style={styles.InputContainer1}>
             <Text style={styles.InputText1}>Email</Text>
             <SmsIcon style={styles.smsicon} />
-            <TextInput style={{width: '83%'}} placeholder="Emmanuel6@gmail.com"></TextInput>
+            <TextInput style={{width: '83%'}} placeholder="Emmanuel6@gmail.com"
+             value={email} onChangeText={setEmail}
+            ></TextInput>
             </View>
 
 
            <View style={styles.InputContainer2}>
            <Text style={styles.InputText2}>Password</Text>
            <LockIcon style={styles.lockicon} />
-           <TextInput placeholder="•••••••••••••" secureTextEntry = {true} style={{fontWeight: 'bold', width: '83%'}}></TextInput>
+           <TextInput placeholder="•••••••••••••" secureTextEntry = {true} style={{fontWeight: 'bold', width: '83%'}}
+            value={password} onChangeText={setPassword} 
+           ></TextInput>
            </View>
 
            <View style = {styles.RPbox}>
@@ -58,7 +109,7 @@ export default function LoginScreen(){
 
 
            
-           <TouchableOpacity style={styles.InputButton}>
+           <TouchableOpacity style={styles.InputButton} onPress={LoginFunction}>
             <Text style={{textAlign: 'center', color: 'white'}}>Login</Text>
            </TouchableOpacity>
               

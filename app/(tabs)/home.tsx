@@ -1,3 +1,4 @@
+import FifthRoute from "@/tabHomePages/fifthRoute";
 import FirstRoute from "@/tabHomePages/firstRoute";
 import FourthRoute from "@/tabHomePages/fourthRoute";
 import SecondRoute from "@/tabHomePages/secondRoute";
@@ -22,6 +23,7 @@ export default function TabHomeScreen (){
         second: SecondRoute,
         third: ThirdRoute,
         fourth: FourthRoute,
+        fifth: FifthRoute
     })
 
 
@@ -29,7 +31,8 @@ export default function TabHomeScreen (){
         {key : 'first', title: "Shirts"},
         {key : 'second', title: "Shorts"},
         {key : 'third', title: "Shoes"},
-        {key : 'fourth', title: "Caps"}
+        {key : 'fourth', title: "Jackets"},
+        {key: 'fifth', title: 'Trousers'}
     ]
 
     const layout = useWindowDimensions();
@@ -113,21 +116,24 @@ const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
 
             <View>
 
+
+
+
             <TabView
             navigationState={{ index, routes }}
             renderScene={renderScene}
             onIndexChange={setIndex}
             initialLayout={{ width: layout.width }}
              renderTabBar={props => (
-           <TabBar
-        
+               
+            <TabBar
           {...props}
           renderIndicator={({ position, getTabWidth, layout }) => {
             // Create a "pill" indicator that matches the width of the tab
             const inputRange = props.navigationState.routes.map((_, i) => i);
             const translateX = position.interpolate({
               inputRange,
-              outputRange: props.navigationState.routes.map((_, i) => i * (layout.width / routes.length)),
+              outputRange: props.navigationState.routes.map((_, i) => i * 100),
             });
 
             return (
@@ -137,24 +143,30 @@ const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
                   top: 5,
                   left: 0,
                   transform: [{ translateX }],
-                  width: layout.width / routes.length - 25,
+                  width: layout.width / routes.length - 5,
                   marginHorizontal: 12,
                   height: 38,
                   borderRadius: 20,
-                  backgroundColor: 'white', // 💜 pill color
+                  backgroundColor: 'white',
                 }}
               />
             );
           }}
           style={{
             backgroundColor: '#6734F2',
-            paddingBottom: 10
+            paddingBottom: 10,
           }}
           activeColor="#6734F2"
           inactiveColor="white"
+          scrollEnabled
+          tabStyle={{width: 100}}
         />
+        
+
+
       )}
-    />
+        />
+
             </View>
 
 

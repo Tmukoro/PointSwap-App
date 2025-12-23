@@ -5,9 +5,9 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function SecondRoute  () {
+export default function FifthRoute  () {
 
-    const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/products?category=Shorts";
+    const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/products?category=Trousers";
 
     const [feedData, setFeedData] = useState<FeedItem[]>([]);
     const [loading, setLoading] = useState<boolean>(true);

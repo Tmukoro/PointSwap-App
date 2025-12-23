@@ -5,10 +5,15 @@ import ChatIcon from "@/components/TabIcons/chat";
 import HomeIcon from "@/components/TabIcons/home";
 import NotificationIcon from "@/components/TabIcons/notification";
 import SettingsIcon from "@/components/TabIcons/settings";
+import UploadModal from "@/components/uploadModal";
+import { useState } from "react";
 
 export default function TabsLayout (){
 
+  const [isModalVisible, setIsModalVisible] = useState(false)
+
     return(
+       <>
         <Tabs screenOptions={{
             headerShown: false,
             tabBarActiveTintColor: '#292929',
@@ -37,6 +42,13 @@ export default function TabsLayout (){
                tabBarIcon: ()=> <AddIcon style={{marginTop: 10}} />,
                title : ''
             }}
+
+            listeners={{
+              tabPress: (e) =>{
+                e.preventDefault();
+                setIsModalVisible(true);
+              },
+            }}
              />
 
             <Tabs.Screen name="notifications"
@@ -53,8 +65,18 @@ export default function TabsLayout (){
                 headerShown: true,
               }}
             />
+             
+            
+
 
         </Tabs>
+
+        <UploadModal
+             visible={isModalVisible}
+             onClose={()=> setIsModalVisible(false)}
+            />
+
+        </>
     )
 
 }

@@ -1,7 +1,49 @@
+import ItemBox from "@/components/itemBox";
 import SortIcon from "@/components/SvgIcons/sortIcon";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FeedItem, FeedResponse } from "@/types/products";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function ThirdRoute () {
+export default function ThirdRoute  () {
+
+    const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/products?category=Shoes";
+
+    const [feedData, setFeedData] = useState<FeedItem[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    const fetchFeed = async (): Promise<void> => {
+        try{
+            setLoading(true)
+            const response = await axios.get<FeedResponse>(apiUrl);
+            setFeedData(response.data.data.items);
+            setError(null)
+        } catch(err){
+            console.error(err)
+            setError("Faile to load feed")
+        } finally{
+            setLoading(false)
+        }
+    };
+
+    useEffect(()=>{
+        fetchFeed();
+    }, []);
+
+    const handlePress = (item: FeedItem)=>{
+        console.log("item pressed", item);
+    };
+
+    if(loading){
+        return(
+            <View>
+                <ActivityIndicator size={'large'} />
+            </View>
+        )
+    }
+
+
     return(
         <View style={{ flex: 1, backgroundColor: 'white' }}>
 
@@ -16,7 +58,21 @@ export default function ThirdRoute () {
             </View>
 
             <View style={styles.itemBox}>
-
+                
+                <FlatList
+                 data={feedData}
+                 keyExtractor={(item)=> item.product_id}
+                 renderItem={({item})=>(
+                    <ItemBox
+                       title={item.title}
+                       estimated_size={item.estimated_size}
+                       image_url={item.image_url[0]}
+                       onPress={handlePress}     
+                    />
+                 )}
+                 refreshing={loading}
+                 onRefresh={fetchFeed}
+                />
 
             </View>
 
@@ -47,8 +103,9 @@ const styles = StyleSheet.create({
 
     itemBox : {
         height: '100%',
-        backgroundColor: 'blue'
-    }
+    },
+
+
 })
 
 

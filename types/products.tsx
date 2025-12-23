@@ -1,17 +1,22 @@
 
 
 
-export interface CprodReq {
+export interface FeedItem {
+    title : string,
+    estimated_size : string,
+    image_url : [string],
+    product_id : string,
+}
+
+export interface FeedResponse {
     data : {
-        product : {
-            product_id : string,
-            seller : {
-                email: string,
-                first_name : string,
-                last_name : string,
-                avatar_url : string,
-                location : string
-            }
-        }
+        items : FeedItem[]
     }
+}
+
+export interface CreateProduct {
+    category : string,
+    image_urls : [string],
+    title : string,
+    estimated_size : string
 }

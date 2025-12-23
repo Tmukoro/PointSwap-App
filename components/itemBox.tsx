@@ -1,17 +1,14 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native"
-export default function ItemBox () {
 
 
 
-    
-
-
+export default function ItemBox ({image_url, title, estimated_size, onPress}) {
     return(
-    <TouchableOpacity style={styles.itemBoxD}>
-    <Image style={{width: 80, height: 80, borderRadius: 8, marginLeft: 10}} source={require('../assets/images/cap3.png')} />
+    <TouchableOpacity style={styles.itemBoxD} onPress={onPress}>
+    <Image style={{width: 80, height: 80, borderRadius: 8, marginLeft: 10}} source={{uri: image_url}} />
     <View style={{paddingRight: 160, paddingTop: 10, flexDirection: 'column', gap: 10 }}>
-        <Text style={{fontSize: 14, fontWeight: 600}}>Neat NYSC top</Text>
-        <Text style={{fontSize: 14, fontWeight: 600, color: 'gray'}}>Size: M</Text>
+        <Text style={{fontSize: 14, fontWeight: 600}}>{title}</Text>
+        <Text style={{fontSize: 14, fontWeight: 600, color: 'gray'}}>Size: {estimated_size}</Text>
      </View>
   </TouchableOpacity>
     )

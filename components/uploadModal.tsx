@@ -1,16 +1,18 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View
+  View,
 } from 'react-native';
 
+import CategoryModal from './categoryModal';
 import CloseIcon from './SvgIcons/closeIcon';
 import OptionsIcon from './SvgIcons/OptionsIcon';
 import PolygonIcon from './SvgIcons/PolygonIcon';
@@ -21,10 +23,14 @@ interface UploadModalProps {
   onClose: () => void;
 }
 
+
 const { height } = Dimensions.get('screen');
 
 const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
+  const [showCategoryModal, setShowCategoryModal] = useState(false)
+
+  
 
   useEffect(() => {
     if (visible) {
@@ -45,7 +51,16 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
     }
   }, [visible]);
 
+  const navigateToCategory = ()=>{
+      setShowCategoryModal(true)
+  }
+
+  const handleCategoryModel = ()=>{
+    setShowCategoryModal(false)
+  }
+
   return (
+    <>
     <Modal
       visible={visible}
       transparent
@@ -66,15 +81,20 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
               {/* Handle bar */}
               <View style={styles.handleBar}>
                 <CloseIcon onPress={onClose} />
-                <Text style={{color: 'white', fontWeight: '600', fontSize: 16}}>Add items</Text>
+                <Text style={{color: 'white', fontWeight: '600', fontSize: 16, paddingLeft: 15}}>Add items</Text>
                 <OptionsIcon />
               </View>  
 
               {/* Add your content here */}
-              <View style={styles.content}>
+              <ScrollView 
+              style={styles.scrollContent}
+              contentContainerStyle={styles.content}
+              keyboardShouldPersistTaps='handled'
+              showsVerticalScrollIndicator= {false}
+              >
 
                 <View style={styles.CategoryBox}>
-                  <TouchableOpacity style={styles.CategoryContainer}>
+                  <TouchableOpacity style={styles.CategoryContainer} onPress={navigateToCategory} >
                   <Text style={styles.TextCategory}>Category(required)</Text>
                   <Text style={{marginLeft: 3}}>Select</Text>
                   <PolygonIcon style={{marginRight: 18}} />
@@ -100,7 +120,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
 
                <View style={styles.InputContainer1}>
                <Text style={styles.InputText}>Title (required)</Text>
-               <TextInput placeholder="(e.g NYSC White Shirt)"
+               <TextInput placeholder="(e.g NYSC White Shirt)" style={{paddingLeft: 11}}
                ></TextInput>
                </View>
 
@@ -133,13 +153,19 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
 
 
 
-              </View>
+              </ScrollView>
 
             </Animated.View>
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
     </Modal>
+
+    <CategoryModal 
+      visible={showCategoryModal}
+      onClose={handleCategoryModel}
+      />
+    </>
   );
 };
 
@@ -159,7 +185,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 10,
     paddingTop: 10,
-    minHeight: 800, // Adjust as needed
+    height: height * 0.9,
+    maxHeight: height * 0.9
   },
   handleBar: {
     minWidth: '112%',
@@ -172,13 +199,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     justifyContent: 'space-evenly',
     flexDirection: 'row',
-    gap: 80
+    gap: 75
   },
 
+  scrollContent: {
+    flex: 1
+  },
   content: {
-    flex: 1,
     marginTop: 65,
-    height: 'auto',
     width: '100%',
   },
   

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   TouchableWithoutFeedback,
   View
 } from 'react-native';
@@ -30,6 +31,8 @@ const { height } = Dimensions.get('screen');
 const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
 
+  const [category, setCategory] = useState<string | null>(null);
+
   useEffect(() => {
     if (visible) {
       // Slide up
@@ -47,7 +50,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
         useNativeDriver: true,
       }).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim]);
 
   return (
     <Modal
@@ -78,27 +81,35 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
                  {/* SELECT CATEGORY BOX */}
                 <View style={styles.categoryBox}>
                   <CategoryBox
-                   color={'#E8F8EC'}
+                   color='#E8F8EC'
                    title={'Cap 🧢'}
                    icon={<CapCategory />} 
+                   isSelected={category === 'cap'}
+                   onPress={()=> setCategory('cap')}
                   />
 
                   <CategoryBox 
                   color='#FFF7E1'
                   title='Shorts 🩳'
                   icon ={<ShortCategory />}
+                  isSelected={category ==='shorts'}
+                  onPress={()=> setCategory('shorts')}
                   />
 
                   <CategoryBox
-                   color='#E2ECFD'
+                  color='#E2ECFD'
                    title='Shoes 🥾'
-                   icon={<ShoesCategory />}  
+                   icon={<ShoesCategory />}
+                   isSelected={category === 'shoes'}
+                   onPress={()=> setCategory('shoes')}  
                   />
 
                   <CategoryBox
                   color='#F0EBFE'
                   title='Shirts 👕'
                   icon={<ShirtsCategory />}
+                  isSelected = {category === 'shirts'}
+                  onPress={()=> setCategory('shirts')}
                   />
                 </View>
 
@@ -122,9 +133,9 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
 
 
 
-           {/* <TouchableOpacity style={styles.InputButton}>
-            <Text style={{textAlign: 'center', color: 'white'}}>Post now</Text>
-           </TouchableOpacity>                 */}
+            <TouchableOpacity style={styles.InputButton} onPress={onClose}>
+            <Text style={{textAlign: 'center', color: 'white', fontWeight: 400, fontSize: 14}}>Done</Text>
+           </TouchableOpacity>   
 
 
 
@@ -160,7 +171,6 @@ const styles = StyleSheet.create({
         minWidth: '112%',
         height: 75,
         backgroundColor: '#6734F2',
-        alignSelf: 'center',
         alignItems: 'center',
         borderTopLeftRadius: 24,
         borderTopRightRadius: 24,
@@ -180,16 +190,18 @@ const styles = StyleSheet.create({
       categoryBox:{
         maxWidth: '100%',
         height: 380,
-        gap: 15,
-        paddingHorizontal: 5,
+        gap: 23,
+        paddingHorizontal: 3,
         flexDirection: 'row',
         flexWrap: 'wrap',
-        marginTop: 5
+        paddingTop: 30
       },
 
       othersBox : {
         maxWidth: '100%',
         height: 150,
+        paddingHorizontal: 3,
+        paddingTop: 15
       },
 
       InputContainer1 : {
@@ -213,6 +225,14 @@ const styles = StyleSheet.create({
         paddingLeft: 5,
         paddingRight: 5,
         fontSize: 12,
+      },
+
+      InputButton :{
+        marginTop: 25,
+        backgroundColor: '#6734F2',
+        paddingTop: 15,
+        paddingBottom: 15,
+        borderRadius: 8
       },
 })
 

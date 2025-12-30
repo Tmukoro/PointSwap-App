@@ -1,7 +1,6 @@
 import FlagWomanIcon from "@/components/SvgIcons/flagwoman";
 import { Link, useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 
 
@@ -14,8 +13,7 @@ export default function WelcomeScreen (){
 
   return(
 
-    <SafeAreaView>
-
+    
 
     <View style={styles.container}>
 
@@ -37,8 +35,8 @@ export default function WelcomeScreen (){
           <Text style={{color: 'white', fontSize: 14, fontWeight: '600'}}>Register</Text>
         </TouchableOpacity>
 
-        <Text style={{paddingLeft: 26, marginTop: 55}}>Already have an account? 
-        <Link href={'/login'} style={{color: '#6734F2', textDecorationLine:'underline'}}> Login</Link>
+        <Text style={{paddingLeft: 26, marginTop: 55, fontSize: 14}}>Already have an account?  
+        <Link href={'/login'} style={{color: '#6734F2'}}> Login</Link>
         </Text>
         
 
@@ -56,8 +54,7 @@ export default function WelcomeScreen (){
       
     </View>
 
-    </SafeAreaView>
-
+    
 
 
 

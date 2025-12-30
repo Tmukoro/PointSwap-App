@@ -122,7 +122,7 @@ export default function LoginScreen(){
 
           <View style={styles.UVbox}>
             <RectangleIcon />
-            <Text style={{paddingLeft: 2, paddingRight: 2}}>Or register with</Text>
+            <Text style={{paddingLeft: 2, paddingRight: 2}}>Or login with</Text>
             <RectangleIcon />
         
           </View>

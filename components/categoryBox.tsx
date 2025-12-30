@@ -1,17 +1,30 @@
 import React from "react";
-import { Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function CategoryBox({title, color, icon} : {title: string; color: string; icon: React.ReactNode}){
+interface CategoryBoxProps {
+    title: string;
+    icon: React.ReactNode
+    isSelected: boolean
+    onPress: ()=> void;
+    color: string;
+}
+
+
+
+export default function CategoryBox({title, icon, isSelected, color, onPress} : CategoryBoxProps){
+    
+
+
     return(
-        <TouchableOpacity style={{
-            backgroundColor: color,
-            width: 152,
-            height: 152,
-            borderRadius: 25,
-            borderWidth: 1,
-            borderColor: color,
-            alignContent: 'center'
-        }}>
+        <TouchableOpacity style={
+            [styles.button,
+            {
+             backgroundColor: color,
+            }, 
+            isSelected && styles.selectedCategory,
+            ]
+
+        } onPress={onPress}>
         <View style={{
             borderRadius: 25, 
             width: 100, 
@@ -30,3 +43,19 @@ export default function CategoryBox({title, color, icon} : {title: string; color
         </TouchableOpacity>
     )
 }
+
+const styles = StyleSheet.create({
+    button :{
+        width: 152,
+        height: 152,
+        borderRadius: 25,
+        alignContent: 'center'
+    },
+
+    selectedCategory : {
+        borderWidth: 2,
+        borderColor: '#6734F2',
+    }
+})
+
+

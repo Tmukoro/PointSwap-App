@@ -18,6 +18,8 @@ import OptionsIcon from './SvgIcons/OptionsIcon';
 import PolygonIcon from './SvgIcons/PolygonIcon';
 import UploadIcon from './SvgIcons/UplaodIcon';
 
+import Dropdown from './dropdown';
+
 interface UploadModalProps {
   visible: boolean;
   onClose: () => void;
@@ -28,7 +30,9 @@ const { height } = Dimensions.get('screen');
 
 const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
-  const [showCategoryModal, setShowCategoryModal] = useState(false)
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [size, setSize] = useState('')
+  const sizeOptions = ['S', 'M', 'L', 'XL'];
 
   
 
@@ -49,7 +53,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
         useNativeDriver: true,
       }).start();
     }
-  }, [visible]);
+  }, [visible, slideAnim]);
 
   const navigateToCategory = ()=>{
       setShowCategoryModal(true)
@@ -125,12 +129,15 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
                </View>
 
                
-               <View style={styles.CategoryBox}>
-                  <TouchableOpacity style={styles.CategoryContainer}>
-                  <Text style={styles.TextCategory}>Estimated size (required)</Text>
-                  <Text style={{marginLeft: 3}}>Select</Text>
-                  <PolygonIcon style={{marginRight: 18}} />
-                  </TouchableOpacity>
+               <View style={styles.CategoryBox2}>
+                <Dropdown
+                label='Estimated Size(required)'
+                placeholder='Select'
+                options={sizeOptions}
+                selectedValue={size}
+                onSelect={setSize}
+                />
+
                 </View> 
 
                 </View>
@@ -214,6 +221,14 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     paddingTop: 18,
     marginTop: 18,
+    width: '98%',
+    maxWidth: '98%'
+  },
+
+  CategoryBox2 : {
+    alignSelf: 'flex-start',
+    paddingTop: 8,
+    marginTop: 8,
     width: '98%',
     maxWidth: '98%'
   },

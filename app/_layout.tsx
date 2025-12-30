@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/no-named-as-default
 import tamaguiConfig from "@/tamui.config";
-import { Stack } from "expo-router";
-import { TamaguiProvider } from "tamagui";
+import { Slot } from "expo-router";
+import { PortalProvider, TamaguiProvider } from "tamagui";
 
 
 
@@ -9,15 +9,9 @@ export default function RootLayout() {
   return(
 
     <TamaguiProvider config={tamaguiConfig}>
-    <Stack
-       screenOptions={{
-        headerShown: false
-       }}
-       initialRouteName="(home)"
-    >
-      <Stack.Screen name="(home)" />
-      <Stack.Screen name="(tabs)" />
-    </Stack>
+      <PortalProvider>
+        <Slot />
+    </PortalProvider>
     </TamaguiProvider>
   )
 }

@@ -5,7 +5,7 @@ import Svg, {
   Path,
   Pattern,
   SvgProps,
-  Use,
+  Use
 } from "react-native-svg"
 const CapCategory = (props: SvgProps) => (
   <Svg

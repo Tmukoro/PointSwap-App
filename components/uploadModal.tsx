@@ -1,7 +1,9 @@
+import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -13,9 +15,9 @@ import {
 } from 'react-native';
 
 import CategoryModal from './categoryModal';
+import CheckIcon from './SvgIcons/checkIcon';
 import CloseIcon from './SvgIcons/closeIcon';
 import OptionsIcon from './SvgIcons/OptionsIcon';
-import PolygonIcon from './SvgIcons/PolygonIcon';
 import UploadIcon from './SvgIcons/UplaodIcon';
 
 import Dropdown from './dropdown';
@@ -30,9 +32,12 @@ const { height } = Dimensions.get('screen');
 
 const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [size, setSize] = useState('')
   const sizeOptions = ['S', 'M', 'L', 'XL'];
+  const [category, setCategory] = useState<string>('');
+  const [title, setTitle] = useState<string>('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+
 
   
 
@@ -53,15 +58,27 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
         useNativeDriver: true,
       }).start();
     }
+
+
   }, [visible, slideAnim]);
 
-  const navigateToCategory = ()=>{
-      setShowCategoryModal(true)
+
+  const pickImage = async ()=> {
+     let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: false,
+      aspect: [1, 1],
+      quality: 1,
+      allowsMultipleSelection: true,
+      selectionLimit: 4
+     });
+
+     if(!result.canceled){
+      const newImageUriS = result.assets.map((asset)=> asset.uri);
+      setImageUrls((prev)=> [...prev, ...newImageUriS].slice(0,4));
+     }
   }
 
-  const handleCategoryModel = ()=>{
-    setShowCategoryModal(false)
-  }
 
   return (
     <>
@@ -97,13 +114,14 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
               showsVerticalScrollIndicator= {false}
               >
 
-                <View style={styles.CategoryBox}>
-                  <TouchableOpacity style={styles.CategoryContainer} onPress={navigateToCategory} >
-                  <Text style={styles.TextCategory}>Category(required)</Text>
-                  <Text style={{marginLeft: 3}}>Select</Text>
-                  <PolygonIcon style={{marginRight: 18}} />
-                  </TouchableOpacity>
-                </View>
+                <CategoryModal
+                 label='Category(required)'
+                 placeholder='Select'
+                 selectedValue={category}
+                 onSelect={setCategory}
+                 />
+
+                
 
                 {/* IMAGE PICKER */}
                 <View style={{height: 170, maxWidth: '100%', marginTop: 26}}>
@@ -111,7 +129,17 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
 
                 {/* Image selector */}
                 <View style={styles.ImageSelectorContainer}>
-                 <UploadIcon  /> 
+                 <UploadIcon onPress={pickImage}  /> 
+                 {imageUrls.map((uri, index)=>(
+                  <View key={index} style={styles.imageSelector}>
+                   <Image source={{uri}} style={styles.image} />
+
+                   {index === 0 && (
+                    <CheckIcon style={{bottom: 10, left: 6}} />
+                   )}
+                   </View>
+
+                 ))}
                 </View>
 
                 <Text>• First picture is the title picture</Text>
@@ -124,7 +152,9 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
 
                <View style={styles.InputContainer1}>
                <Text style={styles.InputText}>Title (required)</Text>
-               <TextInput placeholder="(e.g NYSC White Shirt)" style={{paddingLeft: 11}}
+               <TextInput placeholder="(e.g NYSC White Shirt)"
+                value={title} onChangeText={setTitle}
+               style={{paddingLeft: 11}}
                ></TextInput>
                </View>
 
@@ -168,10 +198,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
       </TouchableWithoutFeedback>
     </Modal>
 
-    <CategoryModal 
-      visible={showCategoryModal}
-      onClose={handleCategoryModel}
-      />
     </>
   );
 };
@@ -258,8 +284,11 @@ const styles = StyleSheet.create({
   ImageSelectorContainer : {
     height: 85, 
     maxWidth: '100%', 
-    marginTop: 2,
-    justifyContent: 'center',
+    marginTop: 1,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5
   },
 
   InputContainer1 : {
@@ -302,6 +331,19 @@ const styles = StyleSheet.create({
     paddingBottom: 15,
     borderRadius: 8
   },
+
+  image: {
+    width: 60,
+    height: 60,
+    borderRadius: 8
+  },
+
+  imageSelector: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    alignItems: 'flex-end'
+  }
 
 
 });

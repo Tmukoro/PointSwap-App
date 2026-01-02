@@ -13,6 +13,7 @@ import {
 
 import CloseIcon from '@/components/SvgIcons/closeIcon';
 import CategoryBox from './categoryBox';
+import PolygonIcon from './SvgIcons/PolygonIcon';
 
 import CapCategory from './SvgIcons/capCatIcon';
 import ShirtsCategory from './SvgIcons/shirtCatIcon';
@@ -20,21 +21,26 @@ import ShoesCategory from './SvgIcons/shoeCatIcon';
 import ShortCategory from './SvgIcons/shortCatIcon';
 
 interface CategoryModalProps {
-  visible: boolean;
-  onClose: () => void;
+  label: string;
+  placeholder: string;
+  selectedValue? : string
+  onSelect: (value : string) => void;
 }
 
 
 
 const { height } = Dimensions.get('screen');
 
-const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
+const CategoryModal: React.FC<CategoryModalProps> = ({label, placeholder, selectedValue, onSelect}) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
 
-  const [category, setCategory] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [category, setCategory] = useState<string>('');
+
+
 
   useEffect(() => {
-    if (visible) {
+    if (isOpen) {
       // Slide up
       Animated.spring(slideAnim, {
         toValue: 15,
@@ -50,17 +56,34 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
         useNativeDriver: true,
       }).start();
     }
-  }, [visible, slideAnim]);
+  }, [isOpen, slideAnim]);
+
+  const handleSelect = (value : string) =>{
+    onSelect(value);
+    setIsOpen(false)
+  }
 
   return (
+
+    <View style={styles.CategoryBox}>
+    <TouchableOpacity style={styles.CategoryContainer} onPress={()=> setIsOpen(true)} >
+    <Text style={styles.TextCategory}>{label}</Text>
+    <Text style={{marginLeft: 3}}>{selectedValue || placeholder}</Text>
+    <PolygonIcon style={{marginRight: 18}} />
+    </TouchableOpacity>
+  
+
+
+
+
     <Modal
-      visible={visible}
+      visible={isOpen}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
+      onRequestClose={()=> setIsOpen(false)}
     >
       {/* Dark overlay - tapping closes modal */}
-      <TouchableWithoutFeedback onPress={onClose}>
+      <TouchableWithoutFeedback onPress={()=> setIsOpen(false)}>
         <View style={styles.overlay}>
           {/* Modal content - tapping inside doesn't close */}
           <TouchableWithoutFeedback>
@@ -72,7 +95,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
             >
               {/* Handle bar */}
               <View style={styles.handleBar}>
-                <CloseIcon onPress={onClose} style={{marginLeft: 40}} />
+                <CloseIcon onPress={()=> setIsOpen(false)} style={{marginLeft: 40}} />
                 <Text style={{color: 'white', fontWeight: '600', fontSize: 16}}>Category</Text>
               </View>  
 
@@ -84,32 +107,32 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
                    color='#E8F8EC'
                    title={'Cap 🧢'}
                    icon={<CapCategory />} 
-                   isSelected={category === 'cap'}
-                   onPress={()=> setCategory('cap')}
+                   isSelected={category === 'Cap'}
+                   onPress={()=> setCategory('Cap')}
                   />
 
                   <CategoryBox 
                   color='#FFF7E1'
                   title='Shorts 🩳'
                   icon ={<ShortCategory />}
-                  isSelected={category ==='shorts'}
-                  onPress={()=> setCategory('shorts')}
+                  isSelected={category ==='Shorts'}
+                  onPress={()=> setCategory('Shorts')}
                   />
 
                   <CategoryBox
                   color='#E2ECFD'
                    title='Shoes 🥾'
                    icon={<ShoesCategory />}
-                   isSelected={category === 'shoes'}
-                   onPress={()=> setCategory('shoes')}  
+                   isSelected={category === 'Shoes'}
+                   onPress={()=> setCategory('Shoes')}  
                   />
 
                   <CategoryBox
                   color='#F0EBFE'
                   title='Shirts 👕'
                   icon={<ShirtsCategory />}
-                  isSelected = {category === 'shirts'}
-                  onPress={()=> setCategory('shirts')}
+                  isSelected = {category === 'Shirts'}
+                  onPress={()=> setCategory('Shirts')}
                   />
                 </View>
 
@@ -133,7 +156,7 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
 
 
 
-            <TouchableOpacity style={styles.InputButton} onPress={onClose}>
+            <TouchableOpacity style={styles.InputButton} onPress={()=> handleSelect(category)}>
             <Text style={{textAlign: 'center', color: 'white', fontWeight: 400, fontSize: 14}}>Done</Text>
            </TouchableOpacity>   
 
@@ -147,6 +170,8 @@ const CategoryModal: React.FC<CategoryModalProps> = ({ visible, onClose }) => {
         </View>
       </TouchableWithoutFeedback>
     </Modal>
+
+    </View>
   );
 };
 
@@ -158,6 +183,40 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
         justifyContent: 'flex-end',
       },
+
+
+      CategoryBox : {
+        alignSelf: 'flex-start',
+        paddingTop: 18,
+        marginTop: 18,
+        width: '98%',
+        maxWidth: '98%'
+      },
+    
+      CategoryContainer : {
+        borderWidth: 1,
+        borderColor: '#c9c9c9',
+        borderRadius: 8,
+        paddingTop: 16,
+        paddingBottom: 16, 
+        paddingLeft: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      },
+    
+      TextCategory : {
+        position: 'absolute',
+        bottom: 42,
+        left: 12,
+        color: '#757575',
+        backgroundColor: '#ffff',
+        paddingRight: 5,
+        fontSize: 12
+      },
+
+
+
       modalContent: {
         backgroundColor: '#fff',
         borderTopLeftRadius: 24,

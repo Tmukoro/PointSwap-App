@@ -63,6 +63,8 @@ export default function TabsLayout (){
                 title: 'Settings',
                 tabBarIcon: ()=> <SettingsIcon />,
                 headerShown: true,
+                headerStyle: {height: 110},
+                headerTitleStyle: {paddingTop: 40, fontSize: 24}
               }}
             />
              

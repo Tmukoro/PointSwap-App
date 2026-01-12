@@ -5,6 +5,7 @@ export interface RegistrationResponse {
         token: string;
 
         user:{
+            user_id : string
             email: string;
         }
     }

@@ -1,10 +1,8 @@
 
-
-
 export interface FeedItem {
     title : string,
     estimated_size : string,
-    image_url : [string],
+    image_url : string,
     product_id : string,
 }
 
@@ -14,9 +12,27 @@ export interface FeedResponse {
     }
 }
 
-export interface CreateProduct {
-    category : string,
-    image_urls : [string],
-    title : string,
-    estimated_size : string
+export interface ImageContent {
+    photo_id : string,
+    product_id : string,
+    image_url : string,
+    display_order: 1
+}
+
+
+
+export interface productResponse {
+    data : {
+        product : {
+            product_id : string,
+            sellers : {
+                user_id : string,
+            },
+            title : string,
+            category : string,
+            estimated_size: string,
+            status : string,
+            photos : [ImageContent],
+        }
+    }
 }

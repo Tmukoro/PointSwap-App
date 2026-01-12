@@ -66,8 +66,8 @@ export default function FirstRoute  () {
                     <ItemBox
                        title={item.title}
                        estimated_size={item.estimated_size}
-                       image_url={item.image_url[0]}
-                       onPress={handlePress}     
+                       image_url={item.image_url}
+                       onPress={()=>handlePress}     
                     />
                  )}
                  refreshing={loading}
@@ -91,14 +91,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingTop: 20,
-        paddingBottom: 15
+        paddingBottom: 15,
+        paddingHorizontal: 10
     },
 
     sortbutton : {
-      paddingRight: 20,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 3
+      gap: 3,
+      paddingHorizontal: 10
     },
 
     itemBox : {

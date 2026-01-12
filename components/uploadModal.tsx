@@ -14,6 +14,9 @@ import {
   View,
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+
 import CategoryModal from './categoryModal';
 import CheckIcon from './SvgIcons/checkIcon';
 import CloseIcon from './SvgIcons/closeIcon';
@@ -22,6 +25,7 @@ import UploadIcon from './SvgIcons/UplaodIcon';
 
 import Dropdown from './dropdown';
 
+import { productResponse } from '@/types/products';
 interface UploadModalProps {
   visible: boolean;
   onClose: () => void;
@@ -37,7 +41,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
   const [category, setCategory] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
-
 
   
 
@@ -59,7 +62,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
       }).start();
     }
 
-
   }, [visible, slideAnim]);
 
 
@@ -78,6 +80,39 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
       setImageUrls((prev)=> [...prev, ...newImageUriS].slice(0,4));
      }
   }
+
+  const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/products"
+
+
+
+
+ 
+  const productUploadFunction = async ()=>{
+    let prodUpload = {
+      category : category,
+      image_urls : imageUrls,
+      title: title,
+      estimated_Size: size
+    }
+
+  
+    try {
+
+      const token = await AsyncStorage.getItem("token")
+
+        await axios.post<productResponse>(apiUrl, prodUpload, {
+        headers : {
+          "Content-Type": "application/json",
+          "Authorization" : `Bearer ${token}`
+        }
+      });
+
+      onClose()
+    }catch(error){
+      console.log(error)
+    }
+  }
+
 
 
   return (
@@ -183,7 +218,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
                 </View>
 
 
-           <TouchableOpacity style={styles.InputButton}>
+           <TouchableOpacity style={styles.InputButton} onPress={productUploadFunction}>
             <Text style={{textAlign: 'center', color: 'white'}}>Post now</Text>
            </TouchableOpacity>                
 

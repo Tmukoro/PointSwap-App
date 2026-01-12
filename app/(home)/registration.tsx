@@ -44,6 +44,7 @@ export default function RegistrationScreen (){
        await AsyncStorage.setItem("token", token)
        await AsyncStorage.setItem("userEmail", userEmail)
 
+
        router.push('/profile')
 
     } catch(error){

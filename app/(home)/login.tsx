@@ -47,9 +47,13 @@ export default function LoginScreen(){
 
       const firstName =  response.data.data.user.first_name
 
+      const lastName = response.data.data.user.last_name
+
       await AsyncStorage.setItem("token", token)
 
       await AsyncStorage.setItem("first_name", firstName)
+
+      await AsyncStorage.setItem("last_name", lastName)
 
       router.push('/home')
 

@@ -66,8 +66,8 @@ export default function SecondRoute  () {
                     <ItemBox
                        title={item.title}
                        estimated_size={item.estimated_size}
-                       image_url={item.image_url[0]}
-                       onPress={handlePress}     
+                       image_url={item.image_url}
+                       onPress={()=>handlePress}     
                     />
                  )}
                  refreshing={loading}

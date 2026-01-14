@@ -7,6 +7,7 @@ import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity
 import { ProfileResponse } from '@/types/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight } from "@tamagui/lucide-icons";
+import * as SecureStore from 'expo-secure-store';
 
 
 
@@ -45,7 +46,7 @@ export default function ProfileSetUpScreen (){
 
     const ProfileSave = async () => {
 
-      const storedToken = await AsyncStorage.getItem("token")
+      const storedToken = await SecureStore.getItemAsync("token")
 
       if(!storedToken){
         console.log("No token found")

@@ -10,6 +10,7 @@ import { RegistrationResponse } from "@/types/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import * as SecureStore from 'expo-secure-store';
 import React, { useState } from "react";
 import { Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
@@ -41,7 +42,7 @@ export default function RegistrationScreen (){
 
        const userEmail = response.data.data.user.email
 
-       await AsyncStorage.setItem("token", token)
+       await SecureStore.setItemAsync("token", token)
        await AsyncStorage.setItem("userEmail", userEmail)
 
 

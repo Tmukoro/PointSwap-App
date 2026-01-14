@@ -11,6 +11,7 @@ import { useState } from "react";
 import { LoginResponse } from "@/types/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import * as SecureStore from 'expo-secure-store';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 
@@ -49,7 +50,7 @@ export default function LoginScreen(){
 
       const lastName = response.data.data.user.last_name
 
-      await AsyncStorage.setItem("token", token)
+      await SecureStore.setItemAsync("token", token)
 
       await AsyncStorage.setItem("first_name", firstName)
 

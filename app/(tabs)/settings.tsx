@@ -5,10 +5,14 @@ import HelpIcon from "@/components/SvgIcons/helpIcon";
 import TAFIcon from "@/components/SvgIcons/tafIcon";
 import NotificationIcon from "@/components/TabIcons/notification";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function SettingsScreen (){
+
+    const route = useRouter()
 
     const [avatar_url, setAvatarUrl] = useState<string | null>('');
     const [first_name, setFirstName] = useState<string | null>('');
@@ -28,13 +32,35 @@ export default function SettingsScreen (){
         }
     }
 
+    const logout = async()=>{
+
+        Alert.alert(
+            'Logout',
+            'Are you sure you want to logout?',
+
+            [
+                {text: 'Cancel', style: 'cancel'},
+                {
+                    text: 'Logout',
+                    style: 'destructive',
+                    onPress : async() =>{
+                        await SecureStore.deleteItemAsync('token');
+                        route.push('/(home)') 
+                    },
+                },
+            ],
+
+            {cancelable: true}
+        );
+
+
+
+    }
+
     useEffect(()=>{
         loadUserData();
     }, []);
     
-
-
-
 
     return(
         <View style={styles.container}>
@@ -92,7 +118,7 @@ export default function SettingsScreen (){
             </View>
 
 
-            <TouchableOpacity style={styles.logOutBtn}>
+            <TouchableOpacity style={styles.logOutBtn} onPress={logout}>
                 <Text style={{fontSize: 15, color: 'red', fontWeight: 600}}>Log out</Text>
             </TouchableOpacity>
 

@@ -6,6 +6,7 @@ import ThirdRoute from "@/tabHomePages/thirdRoute";
 import { GetUserDetails } from "@/types/profile";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Animated, Image, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
@@ -46,7 +47,7 @@ const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
     useEffect(()=>{
         const fetUserData = async ()=>{
             try {
-                const storedToken = await AsyncStorage.getItem("token");
+                const storedToken = await SecureStore.getItemAsync("token");
 
                 if(!storedToken){
                     setLoading(false)

@@ -31,13 +31,14 @@ const styles = StyleSheet.create({
         paddingTop: 18,
         paddingBottom: 18,
         justifyContent: 'space-between',
-        borderWidth: 0.2,
+        borderWidth: 1,
         borderRadius: 8,
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 22,
         marginTop: 10,
-        marginBottom: 10     
+        marginBottom: 10,
+        borderColor: '#E6E6E6'     
     },
 
     iconBox : {

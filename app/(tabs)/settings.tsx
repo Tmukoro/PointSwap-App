@@ -67,7 +67,7 @@ export default function SettingsScreen (){
 
             {/* PROFILE BOX */}
 
-            <View style={styles.profileBox}>
+            <TouchableOpacity style={styles.profileBox}>
             <View>
                   {avatar_url ? (
                         <Image
@@ -83,7 +83,7 @@ export default function SettingsScreen (){
                 <Text style={{fontSize: 14}}>View profile</Text>
             </View>
 
-            </View>
+            </TouchableOpacity>
 
 
             {/* SETTINGS OPTIONS */}
@@ -139,7 +139,8 @@ const styles = StyleSheet.create({
        alignContent: 'center',
        alignItems: 'center',
        backgroundColor: '#fff',
-       height: '100%'
+       height: '100%',
+       paddingVertical: 15
     },
 
     profileBox : {

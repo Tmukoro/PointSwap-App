@@ -33,7 +33,10 @@ export default function TabsLayout (){
             <Tabs.Screen name="chat"
                options={{
                 title : 'Chats',
-                tabBarIcon: ()=> <ChatIcon />
+                tabBarIcon: ()=> <ChatIcon />,
+                headerShown: true,
+                headerTitleStyle: {fontSize: 24, fontWeight: 600, top: 15},
+                headerStyle: {height: 110}
                }}
             />
 
@@ -54,7 +57,7 @@ export default function TabsLayout (){
             <Tabs.Screen name="notifications"
               options={{
                 title: 'Notifications',
-                tabBarIcon: ()=> <NotificationIcon />
+                tabBarIcon: ()=> <NotificationIcon />,
               }}
             />
 
@@ -64,7 +67,7 @@ export default function TabsLayout (){
                 tabBarIcon: ()=> <SettingsIcon />,
                 headerShown: true,
                 headerStyle: {height: 110},
-                headerTitleStyle: {paddingTop: 38, fontSize: 24}
+                headerTitleStyle: {fontSize: 24, top: 15}
               }}
             />
              

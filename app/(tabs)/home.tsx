@@ -4,7 +4,6 @@ import FourthRoute from "@/tabHomePages/fourthRoute";
 import SecondRoute from "@/tabHomePages/secondRoute";
 import ThirdRoute from "@/tabHomePages/thirdRoute";
 import { GetUserDetails } from "@/types/profile";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
@@ -65,8 +64,6 @@ const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
                 setFirstName(userData.first_name)
                 setAvatarUrl(userData.avatar_url)
 
-                await AsyncStorage.setItem("first_name", userData.first_name)
-                await AsyncStorage.setItem("avatar_url", userData.avatar_url)
             } catch(error){
                 console.log(error)
             } finally {

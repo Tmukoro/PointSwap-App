@@ -1,6 +1,8 @@
 export interface GetUserDetails {
     data : {
+        email: string,
         first_name : string,
-        avatar_url : string
+        last_name : string,
+        avatar_url : string,
     }
 }

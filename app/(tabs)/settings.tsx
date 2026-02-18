@@ -4,32 +4,62 @@ import CalenderIcon from "@/components/SvgIcons/calenderIcon";
 import HelpIcon from "@/components/SvgIcons/helpIcon";
 import TAFIcon from "@/components/SvgIcons/tafIcon";
 import NotificationIcon from "@/components/TabIcons/notification";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GetUserDetails } from "@/types/profile";
+import axios from "axios";
 import { useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function SettingsScreen (){
+    const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
+
 
     const route = useRouter()
 
     const [avatar_url, setAvatarUrl] = useState<string | null>('');
     const [first_name, setFirstName] = useState<string | null>('');
     const [last_name, setLastName] = useState<string | null>('');
+    const [token, setToken] = useState<string | null>(null)
+    const [loading, setLoading] = useState(true)
 
     const loadUserData = async()=>{
-        try{
-            const fName = await AsyncStorage.getItem("first_name")
-            const lName = await AsyncStorage.getItem("last_name")
-            const avatar = await AsyncStorage.getItem("avatar_url")
 
-            if(fName) setFirstName(fName);
-            if(lName) setLastName(lName);
-            if(avatar) setAvatarUrl(avatar)
-        } catch(error){
-            console.log(error)
+        try{
+
+        const storedToken = await SecureStore.getItemAsync('token')
+
+        if(!storedToken){
+            setLoading(false)
+            return
         }
+
+        setToken(storedToken)
+
+        const response = await axios.get<GetUserDetails>(apiUrl, {
+            headers: {"Authorization" : `Bearer ${storedToken}`}
+        })
+
+        const userData = response.data.data
+
+        setFirstName(userData.first_name)
+        setLastName(userData.last_name)
+        setAvatarUrl(userData.avatar_url)
+
+       }catch(error){
+        console.error("Error fetching data: ", error)
+       }finally{
+        setLoading(false)
+       }
+        
+    }
+
+    useEffect(()=>{
+        loadUserData();
+    }, []);
+
+    if(loading || !token){
+        return <ActivityIndicator size={'large'} />
     }
 
     const logout = async()=>{
@@ -45,6 +75,7 @@ export default function SettingsScreen (){
                     style: 'destructive',
                     onPress : async() =>{
                         await SecureStore.deleteItemAsync('token');
+                        await SecureStore.deleteItemAsync('user_id')
                         route.push('/(home)') 
                     },
                 },
@@ -57,9 +88,7 @@ export default function SettingsScreen (){
 
     }
 
-    useEffect(()=>{
-        loadUserData();
-    }, []);
+
     
 
     return(
@@ -67,7 +96,7 @@ export default function SettingsScreen (){
 
             {/* PROFILE BOX */}
 
-            <TouchableOpacity style={styles.profileBox}>
+            <TouchableOpacity style={styles.profileBox} onPress={()=> route.push('/(screens)/profile')}>
             <View>
                   {avatar_url ? (
                         <Image

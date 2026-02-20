@@ -174,7 +174,7 @@ export default function ProfileScreen(){
 
 
         <View style={styles.messageCont}>
-          <Text style={{}}>* Please make sure to upload your personal picture to ensure other corp users can recognise you within the camp</Text>
+          <Text>* Please make sure to upload your personal picture to ensure other corp users can recognise you within the camp</Text>
         </View>
 
     

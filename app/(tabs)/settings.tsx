@@ -59,7 +59,7 @@ export default function SettingsScreen (){
     }, []);
 
     if(loading || !token){
-        return <ActivityIndicator size={'large'} />
+        return <ActivityIndicator size={'large'}/>
     }
 
     const logout = async()=>{

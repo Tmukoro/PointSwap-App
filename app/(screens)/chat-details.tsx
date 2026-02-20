@@ -36,6 +36,7 @@ export default function ChatScreen(){
     
     const [messages, setMessages] = useState<IMessage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [replyMessage, setReplyMessage] = useState<IMessage | null>(null)
   
     useEffect(() => {
       initializeChat();
@@ -79,24 +80,23 @@ export default function ChatScreen(){
       if (messageData.sender_id === currentUserId) {
         return;
       }
-  
+    
       const formattedMessage: IMessage = {
         _id: messageData.id,
         text: messageData.message_text,
-        createdAt: new Date(messageData.created_at),
+        // Fix: Handle both string and Date object
+        createdAt: typeof messageData.created_at === 'string' 
+          ? new Date(messageData.created_at) 
+          : messageData.created_at,
         user: {
           _id: messageData.sender_id,
           name: recipientName,
         },
       };
-  
-      setMessages((previousMessages) => {
-        // Check if message already exists
-        const exists = previousMessages.some(msg => msg._id === messageData.id);
-        if (exists) return previousMessages;
-        
-        return GiftedChat.append(previousMessages, [formattedMessage]);
-      });
+    
+      setMessages((previousMessages) =>
+        GiftedChat.append(previousMessages, [formattedMessage])
+      );
     };
   
     // Format backend messages to Gifted Chat format
@@ -115,7 +115,7 @@ export default function ChatScreen(){
   
     // Send message handler
 
-    const onSend = useCallback(async (text: string) => {
+    const onSend = useCallback(async (text: string, replyTo?: IMessage) => {
       const newMessage: IMessage = {
         _id: Math.random().toString(),
         text: text,
@@ -123,6 +123,13 @@ export default function ChatScreen(){
         user: {
           _id: currentUserId,
         },
+        // Add reply reference if replying
+        ...(replyMessage && {
+          replyTo: {
+            _id: replyMessage._id,
+            text: replyMessage.text,
+          }
+        })
       };
     
       try {
@@ -130,11 +137,15 @@ export default function ChatScreen(){
           GiftedChat.append(previousMessages, [newMessage])
         );
         await messageService.sendMessage(conversationId, text);
+        setReplyMessage(null); // Clear reply after sending
       } catch (error) {
         console.error('Error sending message:', error);
       }
     }, [conversationId, currentUserId]);
 
+    const onLongPress = useCallback((context: any, message: IMessage) => {
+      setReplyMessage(message);
+    }, []);
 
     if(isLoading){
       return <ActivityIndicator size={'large'} />
@@ -150,11 +161,12 @@ export default function ChatScreen(){
               <TouchableOpacity
                style={{left: 18, width: 20, height: 20}}
                 onPress={()=> route.push('/(tabs)/chat')}
+                
                >
                 <BackIcon />
               </TouchableOpacity>
 
-              <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+              <View style={{flexDirection: 'row', alignItems: 'center', gap: 4, width: '60%', maxWidth: '60%'}}>
               <Image
                 source={{ 
                   uri: recipientAvatar || 'https://via.placeholder.com/50' 
@@ -164,7 +176,7 @@ export default function ChatScreen(){
               <Text style={styles.headerName}>{recipientName}</Text>
               </View>
 
-              <TouchableOpacity style={{left: 130}}>
+              <TouchableOpacity style={{left: 30}}>
                 <CallIcon />
               </TouchableOpacity>
               </View>
@@ -193,9 +205,15 @@ export default function ChatScreen(){
           }}
           renderBubble={(props)=> <ChatBubble {...props} />}
           renderDay={(props)=> <DayProp {...props} />}
-          renderInputToolbar={()=> <ChatInputToolbar onSend={onSend} />}
+          renderInputToolbar={()=>
+           <ChatInputToolbar
+            onSend={onSend}
+             replyMessage={replyMessage}
+             onCancelReply={()=> setReplyMessage(null)} 
+           />}
           isAlignedTop={true}
           messagesContainerStyle={styles.messageContainer}
+          onLongPressMessage={onLongPress}
         />
 
         </KeyboardAvoidingView>

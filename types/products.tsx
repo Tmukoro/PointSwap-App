@@ -36,3 +36,17 @@ export interface productResponse {
         }
     }
 }
+
+export interface ProductByIdResponse {
+    data:{
+        product_id : string,
+        sellers : {
+            user_id: string,
+        },
+        title: string,
+        category: string,
+        estimated_size: string,
+        status: string,
+        photos: [ImageContent]
+    }
+}

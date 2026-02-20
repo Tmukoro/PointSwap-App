@@ -2,10 +2,13 @@ import ItemBox from "@/components/itemBox";
 import SortIcon from "@/components/SvgIcons/sortIcon";
 import { FeedItem, FeedResponse } from "@/types/products";
 import axios from "axios";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function FirstRoute  () {
+
+    const route = useRouter()
 
     const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/products?category=Shirts";
 
@@ -31,8 +34,8 @@ export default function FirstRoute  () {
         fetchFeed();
     }, []);
 
-    const handlePress = (item: FeedItem)=>{
-        console.log("item pressed", item);
+    const handlePress = ()=>{
+        route.push('/(screens)/productView')
     };
 
     if(loading){
@@ -67,7 +70,7 @@ export default function FirstRoute  () {
                        title={item.title}
                        estimated_size={item.estimated_size}
                        image_url={item.image_url}
-                       onPress={()=>handlePress}     
+                       onPress={handlePress}     
                     />
                  )}
                  refreshing={loading}

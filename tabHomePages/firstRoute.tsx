@@ -34,8 +34,12 @@ export default function FirstRoute  () {
         fetchFeed();
     }, []);
 
-    const handlePress = ()=>{
-        route.push('/(screens)/productView')
+    const handlePress = (productID: string)=>{
+        route.push({
+           pathname: '/(screens)/productView',
+           params: {product_id: productID}
+        })
+        
     };
 
     if(loading){
@@ -70,7 +74,7 @@ export default function FirstRoute  () {
                        title={item.title}
                        estimated_size={item.estimated_size}
                        image_url={item.image_url}
-                       onPress={handlePress}     
+                       onPress={()=> handlePress(item.product_id)}     
                     />
                  )}
                  refreshing={loading}

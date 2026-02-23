@@ -1,29 +1,133 @@
 import BackIcon from "@/components/SvgIcons/backIcon";
+import CallIcon from "@/components/SvgIcons/callIcon";
+import ChatIcon from "@/components/SvgIcons/chatIcon";
 import ExportIcon from "@/components/SvgIcons/exportIcon";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ProductByIdResponse } from "@/types/products";
+import axios from "axios";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 
 export default function ProductViewScreen(){
+    const route = useRouter()
+    const {product_id} = useLocalSearchParams();
+    const apiUrl = `http://192.168.0.134:8080/pointSwapApi/v1/products/${product_id}`;
+
+
+    
+    const [imageUrls, setImageUrls] = useState<string[]>([])
+    const [title, setTitle] = useState<string>('')
+    const [category, setCategory] = useState<string>('')
+    const [size, setSize] = useState<string>('')
+    const [firstName, setFirstName]= useState<string>('')
+    const [lastName, setLastName] = useState<string>('')
+    const [avatarUrl, setAvatarUrl] = useState<string>('')
+    const [loading, setLoading] = useState<boolean>()  
+
+
+
+
+    const loadProductData = async () => {
+          try{
+            setLoading(true)
+            const respone = await axios.get<ProductByIdResponse>(apiUrl)
+            
+            setImageUrls(respone.data.data.photos.map(photo => photo.image_url))
+            setTitle(respone.data.data.title)
+            setCategory(respone.data.data.category)
+            setSize(respone.data.data.estimated_size)
+            setFirstName(respone.data.data.sellers.first_name)
+            setLastName(respone.data.data.sellers.last_name)
+            setAvatarUrl(respone.data.data.sellers.avatar_url)
+
+          }catch(error){
+            console.error("Failed to get product: ", error)
+          }finally{
+            setLoading(false)
+          }
+    }
+
+    useEffect(()=>{
+        loadProductData()
+    }, [])
+
+    
+
+    if(loading){
+        return(
+        <View>
+            <ActivityIndicator size={'large'}/>
+        </View>
+        )
+    }
+
+
+
+
+
+
+
+
     return(
         <View style={styles.container}>
+
             <View style={styles.headerContainer}>
-                <TouchableOpacity style={styles.backIcon}>
-                <BackIcon />
-                <Text>Back</Text>
+
+                <View style={styles.navigationBox}>
+                <TouchableOpacity style={styles.backIcon} onPress={()=> route.back()}>
+                <BackIcon color={'#000'} />
+                <Text style={{fontSize: 16, fontWeight: 400}}>Back</Text>
                 </TouchableOpacity>
                 <TouchableOpacity>
                     <ExportIcon />
                 </TouchableOpacity>
+                </View>
             </View>
 
             {/* IMAGE BOX */}
             <View style={styles.ImageContainer}>
-
+              <FlatList
+               data={imageUrls}
+               keyExtractor={(_,index)=> index.toString()}
+               horizontal
+               showsHorizontalScrollIndicator={false}
+               renderItem={({item})=>(
+                   <Image source={{uri: item}}
+                   style={styles.imagedata}
+                   resizeMode="cover"
+                   />
+               )}
+              
+              />
             </View>
+
 
             {/* DETAILS BOX */}
             <View style={styles.detailsBox}>
+              <Text style={{
+                fontSize: 24, fontWeight: 600, paddingBottom: 10
+                 }}
+                >{title}
+                </Text>
 
+              <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between'
+              }}>
+              <Text style={styles.content}>Category</Text>
+               <Text style={styles.contentValue}>{category}</Text>
+              </View>
+
+              <View style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between'
+              }}>
+                <Text style={styles.content}>Size</Text>
+                <Text style={styles.contentValue}>{size}</Text>
+              </View>
+
+              <View style={styles.rect}></View>
             </View>
 
 
@@ -31,19 +135,52 @@ export default function ProductViewScreen(){
             <View style={styles.contactBox}>
 
                 <View style={styles.profileContainer}>
+                    {avatarUrl ? (
+                        <Image
+                        source={{uri: avatarUrl}}
+                        style={{width: 50, height: 50, borderRadius: 25}}
+                        />
+                    ):(
+                        <Text>No Image</Text>
+                    )}
 
+                    <View>
+                        <Text style={{fontSize: 16, fontWeight: 600}
+                         }>{firstName} {lastName}</Text>
+                        <View style={styles.adbubble}>
+                            <Text>active ads</Text>
+                        </View>
+                    </View>
                 </View>
 
-            <View style={styles.messageCont}>
-                <Text>*Remember to be respectful and kind when messaging other users. Make this a safe and welcoming community for everyone. Thank you 🫂</Text>
             </View>
 
+            {/* NOTICE MESSAGE */}
+            <View style={styles.messageCont}>
+                <Text style={{color: '#C99603'}}>*Remember to be respectful and kind when messaging other users. Make this a safe and welcoming community for everyone. Thank you 🫂</Text>
+            </View>
+
+
+
             <View style={styles.contactOption}>
+
+                <View style={styles.boxc}>
+                <TouchableOpacity style= {styles.contactButton}>
+                    <CallIcon color="#6734F2" />
+                  <Text style={{fontSize: 14, fontWeight: 600, color: '#6734F2'}}>Call</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style= {styles.contactButton2}>
+                    <ChatIcon />
+                  <Text style={{fontSize: 14, fontWeight: 600, color: '#fff'}}>Text</Text>
+                </TouchableOpacity>
+                </View>
+
 
             </View>
                 
 
-            </View>
+            
 
 
 
@@ -60,53 +197,138 @@ const styles = StyleSheet.create({
        margin: 0,
        alignContent: 'center',
        alignItems: 'center',
-       backgroundColor: '#fff'
+       backgroundColor: '#fff',
+       height: '100%',
+       paddingHorizontal: 13
     },
 
     headerContainer : {
-        height: 100,
+        height: 90,
         width: '100%',
+    },
+
+    navigationBox : {
         flexDirection: 'row',
-        borderWidth: 1,
         alignItems: 'center',
-        gap: 30
+        justifyContent: 'space-between',
+        top: 50
     },
 
     backIcon:{
       flexDirection: 'row',
       alignItems: 'center',
-      borderWidth: 1,
-      marginLeft: 10,
+      gap: 7
     },
 
     ImageContainer: {
+        width: '100%',
+        height: 210,
+        marginTop: 5, 
+    },
 
+    imagedata : {
+        width: 350,
+        height: 200,
+        borderRadius: 12,
+        marginRight: 10,
+        
     },
 
     detailsBox: {
+        width: '100%',
+        height: 120,
+        marginTop: 10,
+    },
 
+    content: {
+       fontSize: 14,
+       fontWeight: 400,
+       color: '#757575',
+       paddingVertical: 5
+    },
+
+    contentValue: {
+        fontSize: 14,
+        fontWeight: 400,
+        color: '#191919',
+        paddingVertical: 5
+    },
+
+    rect: {
+      alignSelf: 'center',
+      borderWidth: 1,
+      borderColor: '#E6E6E6',
+      width: 360,
+      height: 0.1,
+      marginVertical: 10
     },
 
     contactBox :{
-
+        width: '100%',
+        height: 100,
+        marginTop: 4,
+        paddingVertical: 10
     },
 
     profileContainer: {
+        flexDirection: 'row',
+        gap: 10
+    },
 
+    adbubble:{
+       backgroundColor: '#EBEBEB',
+       width: 100,
+       paddingVertical: 7,
+       paddingHorizontal: 10,
+       borderRadius: 32,
+       marginVertical: 5
     },
 
     messageCont: {
-        width: '90%',
+        width: '100%',
         padding: 20,
-        marginTop: 53,
+        marginTop: 3,
         borderRadius: 2,
         backgroundColor: '#FFFAEB',
         alignSelf: 'center'
     },
 
     contactOption: {
+        width: '100%',
+        height: 100,
+        marginTop: 10,
+        justifyContent : 'center'
+    },
 
-    }
+    boxc: {
+        flexDirection: 'row',
+        justifyContent: 'space-evenly'
+    },
+
+    contactButton: {
+       backgroundColor: '#E8E1FD',
+       borderWidth: 1,
+       borderColor: '#D0C0FB',
+       borderRadius: 8,
+       width: 150,
+       padding: 13,
+       flexDirection: 'row',
+       gap: 8,
+       alignItems: 'center',
+       justifyContent: 'center'
+    },
+
+    contactButton2: {
+       backgroundColor: '#6734F2',
+       borderRadius: 8,
+       width: 150,
+       padding: 13,
+       flexDirection: 'row',
+       gap: 8,
+       alignItems: 'center',
+       justifyContent: 'center'
+    },
+
 
 
 })

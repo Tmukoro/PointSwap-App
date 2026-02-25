@@ -1,8 +1,9 @@
+import userStatus from "@/services/userStatus";
 import { Stack, useRouter } from "expo-router";
 
 import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, AppState, AppStateStatus, View } from "react-native";
 
 export default function RootStack() {
 
@@ -42,6 +43,52 @@ if(loading){
     </View>
    ); 
 }
+
+
+const appState = useRef(AppState.currentState);
+
+useEffect(() => {
+  // Set user online when app starts
+  setUserOnline();
+
+  // Listen for app state changes
+  const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+  return () => {
+    subscription.remove();
+    // Set offline when app unmounts
+    setUserOffline();
+  };
+}, []);
+
+const handleAppStateChange = (nextAppState: AppStateStatus) => {
+  if (
+    appState.current.match(/inactive|background/) &&
+    nextAppState === 'active'
+  ) {
+    // App came to foreground - set online
+    setUserOnline();
+  } else if (nextAppState.match(/inactive|background/)) {
+    // App went to background - set offline
+    setUserOffline();
+  }
+
+  appState.current = nextAppState;
+};
+
+const setUserOnline = async () => {
+  const token = await SecureStore.getItemAsync('token');
+  if (token) {
+    userStatus.setAuthToken(token)
+    await userStatus.updateStatus(true);
+  }
+};
+
+const setUserOffline = async () => {
+  await userStatus.updateStatus(false);
+};
+
+
 
   return(
        <Stack

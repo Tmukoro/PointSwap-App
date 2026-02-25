@@ -37,6 +37,14 @@ class MessageService {
     return response.data.data.conversations;
   }
 
+
+  async createConversation(recipientId: string) {
+    const response = await this.axiosInstance.post('/conversations', {
+      recipient_id: recipientId,
+    });
+    return response.data.data.conversation_id;
+  }
+
   // Start a new conversation (send first message)
   async sendFirstMessage(recipientId: string, messageText: string) {
     const response = await this.axiosInstance.post('/messages', {

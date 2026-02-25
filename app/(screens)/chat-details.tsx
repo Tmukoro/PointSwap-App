@@ -3,6 +3,7 @@ import BackIcon from "@/components/SvgIcons/backIcon";
 import CallIcon from "@/components/SvgIcons/callIcon";
 import ablyService from "@/services/ablyService";
 import messageService from "@/services/messageService";
+import userStatus from "@/services/userStatus";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
 import { useCallback, useEffect, useState } from "react";
@@ -16,6 +17,8 @@ export default function ChatScreen(){
     const route = useRouter()
 
     const [currentUserID, setCurrentUserID] = useState<string>('')
+    const [isRecipientOnline, setIsRecipientOnline] = useState(false);
+
     
     useEffect(()=>{
         const getUserId = async ()=>{
@@ -40,6 +43,7 @@ export default function ChatScreen(){
   
     useEffect(() => {
       initializeChat();
+      loadRecipientStatus();
   
       return () => {
         // Cleanup when leaving screen
@@ -47,6 +51,11 @@ export default function ChatScreen(){
         ablyService.disconnect();
       };
     }, []);
+
+    const loadRecipientStatus = async () => {
+      const status = await userStatus.getUserStatus(recipientId);
+      setIsRecipientOnline(status.is_online);
+  };
   
     const initializeChat = async () => {
       try {
@@ -76,27 +85,40 @@ export default function ChatScreen(){
   
     // Handle new messages from Ably
     const handleNewMessage = (messageData: any) => {
+      console.log('Received message:', messageData);
+      
       // Don't add if it's from current user (already added optimistically)
       if (messageData.sender_id === currentUserId) {
+        console.log('Skipping own message from Ably');
         return;
+      }
+    
+      let messageDate: Date;
+      try {
+        messageDate = new Date(messageData.created_at);
+      } catch (error) {
+        console.error('Date parsing error in handleNewMessage:', error);
+        messageDate = new Date();
       }
     
       const formattedMessage: IMessage = {
         _id: messageData.id,
         text: messageData.message_text,
-        // Fix: Handle both string and Date object
-        createdAt: typeof messageData.created_at === 'string' 
-          ? new Date(messageData.created_at) 
-          : messageData.created_at,
+        createdAt: messageDate,
         user: {
           _id: messageData.sender_id,
           name: recipientName,
         },
       };
     
-      setMessages((previousMessages) =>
-        GiftedChat.append(previousMessages, [formattedMessage])
-      );
+      setMessages((previousMessages) => {
+        const exists = previousMessages.some(msg => msg._id === messageData.id);
+        if (exists) {
+          console.log('Message already exists, skipping:', messageData.id);
+          return previousMessages;
+        }
+        return GiftedChat.append(previousMessages, [formattedMessage]);
+      });
     };
   
     // Format backend messages to Gifted Chat format
@@ -161,7 +183,6 @@ export default function ChatScreen(){
               <TouchableOpacity
                style={{left: 18, width: 20, height: 20}}
                 onPress={()=> route.push('/(tabs)/chat')}
-                
                >
                 <BackIcon />
               </TouchableOpacity>
@@ -173,7 +194,13 @@ export default function ChatScreen(){
                 }}
                 style={styles.headerAvatar}
               />
+              <View style={{paddingHorizontal: 5}}>
               <Text style={styles.headerName}>{recipientName}</Text>
+              <Text style={styles.headerStatus}>
+              {isRecipientOnline ? 'Online' : 'Offline'}
+               </Text>
+               </View>
+
               </View>
 
               <TouchableOpacity style={{left: 30}}>
@@ -254,5 +281,10 @@ const styles = StyleSheet.create({
     },
     messageContainer :{
       backgroundColor: '#fff'
-    }
+    },
+    headerStatus: {
+      fontSize: 11,
+      color: '#ddd',
+      paddingHorizontal: 2
+  },
 })

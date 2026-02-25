@@ -2,11 +2,13 @@ import ItemBox from "@/components/itemBox";
 import SortIcon from "@/components/SvgIcons/sortIcon";
 import { FeedItem, FeedResponse } from "@/types/products";
 import axios from "axios";
+import { useRouter } from "expo-router";
+import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function FifthRoute  () {
-
+    const route = useRouter()
     const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/products?category=Trousers";
 
     const [feedData, setFeedData] = useState<FeedItem[]>([]);
@@ -16,7 +18,12 @@ export default function FifthRoute  () {
     const fetchFeed = async (): Promise<void> => {
         try{
             setLoading(true)
-            const response = await axios.get<FeedResponse>(apiUrl);
+            const token = await SecureStore.getItemAsync('token')
+            const response = await axios.get<FeedResponse>(apiUrl,{
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
             setFeedData(response.data.data.items);
             setError(null)
         } catch(err){
@@ -31,8 +38,11 @@ export default function FifthRoute  () {
         fetchFeed();
     }, []);
 
-    const handlePress = (item: FeedItem)=>{
-        console.log("item pressed", item);
+    const handlePress = (productID: string)=>{
+        route.push({
+           pathname: '/(screens)/productView',
+           params: {product_id: productID}
+        })
     };
 
     if(loading){
@@ -67,7 +77,7 @@ export default function FifthRoute  () {
                        title={item.title}
                        estimated_size={item.estimated_size}
                        image_url={item.image_url}
-                       onPress={()=>handlePress}     
+                       onPress={()=>handlePress(item.product_id)}     
                     />
                  )}
                  refreshing={loading}

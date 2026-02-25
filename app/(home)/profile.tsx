@@ -29,7 +29,7 @@ export default function ProfileSetUpScreen (){
     useEffect(()=>{
 
       const fetchData = async()=>{
-        const storedToken = await AsyncStorage.getItem("token")
+        const storedToken = await SecureStore.getItemAsync("token")
         const storedEmail = await AsyncStorage.getItem("userEmail")
 
         setToken(storedToken);

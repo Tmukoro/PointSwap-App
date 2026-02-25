@@ -3,6 +3,7 @@ import SortIcon from "@/components/SvgIcons/sortIcon";
 import { FeedItem, FeedResponse } from "@/types/products";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -18,7 +19,12 @@ export default function SecondRoute  () {
     const fetchFeed = async (): Promise<void> => {
         try{
             setLoading(true)
-            const response = await axios.get<FeedResponse>(apiUrl);
+            const token = await SecureStore.getItemAsync('token')
+            const response = await axios.get<FeedResponse>(apiUrl, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
             setFeedData(response.data.data.items);
             setError(null)
         } catch(err){

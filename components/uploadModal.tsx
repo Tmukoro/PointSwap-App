@@ -14,8 +14,8 @@ import {
   View,
 } from 'react-native';
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import * as SecureStore from 'expo-secure-store';
 
 import CategoryModal from './categoryModal';
 import CheckIcon from './SvgIcons/checkIcon';
@@ -98,7 +98,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
   
     try {
 
-      const token = await AsyncStorage.getItem("token")
+      const token = await SecureStore.getItemAsync("token")
 
         await axios.post<productResponse>(apiUrl, prodUpload, {
         headers : {

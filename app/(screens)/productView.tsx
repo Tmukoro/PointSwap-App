@@ -2,17 +2,21 @@ import BackIcon from "@/components/SvgIcons/backIcon";
 import CallIcon from "@/components/SvgIcons/callIcon";
 import ChatIcon from "@/components/SvgIcons/chatIcon";
 import ExportIcon from "@/components/SvgIcons/exportIcon";
+import messageService from "@/services/messageService";
+import userStatus from "@/services/userStatus";
 import { ProductByIdResponse } from "@/types/products";
 import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
+import { ActivityIndicator, Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ProductViewScreen(){
     const route = useRouter()
     const {product_id} = useLocalSearchParams();
     const apiUrl = `http://192.168.0.134:8080/pointSwapApi/v1/products/${product_id}`;
+
+    const messageApiUrl = `http://192.168.0.134:8080/pointSwapApi/v1/messages`
 
 
     
@@ -23,8 +27,20 @@ export default function ProductViewScreen(){
     const [firstName, setFirstName]= useState<string>('')
     const [lastName, setLastName] = useState<string>('')
     const [avatarUrl, setAvatarUrl] = useState<string>('')
-    const [loading, setLoading] = useState<boolean>()  
+    const [loading, setLoading] = useState<boolean>()
+    const [sellerID, setSellerId] = useState<string>('')
+    const [currentUserID, setCurrentUserID] = useState<string>('')
+    const [isSellerOnline, setIsSellerOnline] = useState<boolean>(false);
+    const [sellerLastSeen, setSellerLastSeen] = useState<Date | null>(null);  
 
+
+    useEffect(()=>{
+        const getUserID = async ()=>{
+            const userID = await SecureStore.getItemAsync('token')
+            setCurrentUserID(userID || '')
+        }
+        getUserID()
+    }, [])
 
 
 
@@ -40,6 +56,13 @@ export default function ProductViewScreen(){
             setFirstName(respone.data.data.sellers.first_name)
             setLastName(respone.data.data.sellers.last_name)
             setAvatarUrl(respone.data.data.sellers.avatar_url)
+            setSellerId(respone.data.data.sellers.user_id)
+
+            const status = await userStatus.getUserStatus(
+                respone.data.data.sellers.user_id
+            )
+            setIsSellerOnline(status.is_online)
+            setSellerLastSeen(status.last_seen ? new Date(status.last_seen) : null);
 
           }catch(error){
             console.error("Failed to get product: ", error)
@@ -52,6 +75,35 @@ export default function ProductViewScreen(){
         loadProductData()
     }, [])
 
+    const handleMessage = async () => {
+        try {
+            setLoading(true);
+            
+            // Create or get conversation
+            const conversationId = await messageService.createConversation(sellerID);
+            
+            // Navigate to chat
+            route.push({
+                pathname: '/(screens)/chat-details',
+                params: {
+                    conversationId: conversationId,
+                    recipientId: sellerID,
+                    recipientName: `${firstName} ${lastName}`,
+                    recipientAvatar: avatarUrl,
+                    currentUserId: currentUserID,
+                },
+            });
+        } catch (error) {
+            console.error('Error opening chat:', error);
+            Alert.alert('Error', 'Could not open chat. Please try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+
+
     
 
     if(loading){
@@ -62,7 +114,19 @@ export default function ProductViewScreen(){
         )
     }
 
-
+    function formatLastSeen(date: Date): string {
+        const now = new Date();
+        const diff = now.getTime() - date.getTime();
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+    
+        if (minutes < 1) return 'just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days === 1) return 'yesterday';
+        return `${days}d ago`;
+    }
 
 
 
@@ -145,8 +209,22 @@ export default function ProductViewScreen(){
                     )}
 
                     <View>
+
+                      {/* SWAPPERS NAME */}
+                 <View style={{flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 5}}>
                         <Text style={{fontSize: 16, fontWeight: 600}
                          }>{firstName} {lastName}</Text>
+                           <View style={{width: 4, height: 4, backgroundColor: '#757575'}}/>
+                          {/* Online status text */}
+                        {isSellerOnline ? (
+                            <Text style={styles.onlineText}>Online</Text>
+                        ) : sellerLastSeen ? (
+                            <Text style={styles.offlineText}>
+                                Last seen {formatLastSeen(sellerLastSeen)}
+                            </Text>
+                        ) : null}
+                        </View>
+
                         <View style={styles.adbubble}>
                             <Text>active ads</Text>
                         </View>
@@ -170,9 +248,9 @@ export default function ProductViewScreen(){
                   <Text style={{fontSize: 14, fontWeight: 600, color: '#6734F2'}}>Call</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style= {styles.contactButton2}>
+                <TouchableOpacity style= {styles.contactButton2} onPress={handleMessage} disabled={loading}>
                     <ChatIcon />
-                  <Text style={{fontSize: 14, fontWeight: 600, color: '#fff'}}>Text</Text>
+                  <Text style={{fontSize: 14, fontWeight: 600, color: '#fff'}}>{loading ? 'Loading...': 'Text'}</Text>
                 </TouchableOpacity>
                 </View>
 
@@ -327,6 +405,27 @@ const styles = StyleSheet.create({
        gap: 8,
        alignItems: 'center',
        justifyContent: 'center'
+    },
+
+    onlineIndicator: {
+        position: 'absolute',
+        bottom: 2,
+        right: 2,
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#4CAF50',
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    onlineText: {
+        fontSize: 12,
+        color: '#4CAF50',
+        fontWeight: '500',
+    },
+    offlineText: {
+        fontSize: 12,
+        color: '#999',
     },
 
 

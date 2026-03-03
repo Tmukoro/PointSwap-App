@@ -16,41 +16,46 @@ export default function ChatScreen(){
  
     const route = useRouter()
 
-    const [currentUserID, setCurrentUserID] = useState<string>('')
+    const [currentUserId, setCurrentUserId] = useState<string>('')
     const [isRecipientOnline, setIsRecipientOnline] = useState(false);
 
     
     useEffect(()=>{
         const getUserId = async ()=>{
             const userId = await SecureStore.getItemAsync('user_id')
-            setCurrentUserID(userId || '')
+            setCurrentUserId(userId || '')
         }
         getUserId()
     }, [])
 
+  
     const params = useLocalSearchParams();
     
     const conversationId = params.conversationId as string;
     const recipientId = params.recipientId as string;
     const recipientAvatar = params.recipientAvatar as string
     const recipientName = params.recipientName as string;
-    
-    const currentUserId = currentUserID;
-    
+      
     const [messages, setMessages] = useState<IMessage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [replyMessage, setReplyMessage] = useState<IMessage | null>(null)
+    const [isRecipientTyping, setIsRecipientTyping] = useState(false)
   
+
+    // Initialize chat ONLY when currentUserId is available
     useEffect(() => {
+      if (!currentUserId) return; // Don't run until we have user ID
+
       initializeChat();
       loadRecipientStatus();
   
       return () => {
-        // Cleanup when leaving screen
         ablyService.unsubscribe();
         ablyService.disconnect();
       };
-    }, []);
+    }, [currentUserId]);
+
+
 
     const loadRecipientStatus = async () => {
       const status = await userStatus.getUserStatus(recipientId);
@@ -72,6 +77,9 @@ export default function ChatScreen(){
         
         // 4. Subscribe to new messages
         ablyService.subscribeToConversation(conversationId, handleNewMessage);
+
+            // Subscribe to typing events
+    ablyService.subscribeToTyping(conversationId, handleTypingEvent);
         
         // 5. Mark as read
         await messageService.markAsRead(conversationId);
@@ -85,26 +93,16 @@ export default function ChatScreen(){
   
     // Handle new messages from Ably
     const handleNewMessage = (messageData: any) => {
-      console.log('Received message:', messageData);
       
       // Don't add if it's from current user (already added optimistically)
       if (messageData.sender_id === currentUserId) {
-        console.log('Skipping own message from Ably');
         return;
-      }
-    
-      let messageDate: Date;
-      try {
-        messageDate = new Date(messageData.created_at);
-      } catch (error) {
-        console.error('Date parsing error in handleNewMessage:', error);
-        messageDate = new Date();
       }
     
       const formattedMessage: IMessage = {
         _id: messageData.id,
         text: messageData.message_text,
-        createdAt: messageDate,
+        createdAt: new Date(messageData.created_at),
         user: {
           _id: messageData.sender_id,
           name: recipientName,
@@ -169,6 +167,30 @@ export default function ChatScreen(){
       setReplyMessage(message);
     }, []);
 
+    const handleTypingEvent = (userId: string, isTyping: boolean) => {
+      // Only show typing if it's the other person, not you
+      if (userId !== currentUserId) {
+        setIsRecipientTyping(isTyping);
+      }
+    };
+
+    const handleUserTyping = (isTyping: boolean) => {
+      ablyService.publishTypingStatus(conversationId, currentUserId, isTyping);
+    };
+
+    const renderFooter = () => {
+      return (
+        <View style={styles.typingContainer}>
+          <View style={styles.typingBubble}>
+            <Text style={styles.typingText}>typing...</Text>
+          </View>
+        </View>
+      );
+    };
+    
+    
+  
+
     if(isLoading){
       return <ActivityIndicator size={'large'} />
     }
@@ -211,6 +233,8 @@ export default function ChatScreen(){
 
             </View>
 
+            
+
 
       <KeyboardAvoidingView
       style={styles.container}
@@ -223,7 +247,7 @@ export default function ChatScreen(){
           user={{
             _id: currentUserId,
           }}
-          isTyping = {false}
+          
           reply={{
             swipe: {
               isEnabled: true,
@@ -237,10 +261,13 @@ export default function ChatScreen(){
             onSend={onSend}
              replyMessage={replyMessage}
              onCancelReply={()=> setReplyMessage(null)} 
+             onTyping={handleUserTyping}
            />}
           isAlignedTop={true}
           messagesContainerStyle={styles.messageContainer}
           onLongPressMessage={onLongPress}
+          renderAvatar={null}
+          renderFooter={isRecipientTyping ? renderFooter : undefined}        
         />
 
         </KeyboardAvoidingView>
@@ -286,5 +313,21 @@ const styles = StyleSheet.create({
       fontSize: 11,
       color: '#ddd',
       paddingHorizontal: 2
+  },
+
+  typingContainer: {
+    paddingLeft: 12,
+    paddingBottom: 10,
+  },
+  typingBubble: {
+    backgroundColor: '#EBEBEB',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 18,
+    alignSelf: 'flex-start',
+  },
+  typingText: {
+    color: '#666',
+    fontSize: 14,
   },
 })

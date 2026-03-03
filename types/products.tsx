@@ -12,6 +12,10 @@ export interface FeedResponse {
     }
 }
 
+export interface MyProductResponse {
+    data : FeedItem[]
+}
+
 export interface ImageContent {
     photo_id : string,
     product_id : string,

@@ -7,12 +7,13 @@ import RightArrow from "./SvgIcons/rightArrow";
 interface boxProps {
     icon: React.ReactNode,
     text: string,
+    onPress: ()=> void
 }
 
 
-export default function SettingBox({icon, text} : boxProps){
+export default function SettingBox({icon, text, onPress} : boxProps){
     return(
-        <TouchableOpacity style={styles.settingBox}>
+        <TouchableOpacity style={styles.settingBox} onPress={onPress}>
             <View style={styles.iconBox}>
             {icon}
             <Text style={{fontSize: 14, fontWeight: 400}}>{text}</Text>

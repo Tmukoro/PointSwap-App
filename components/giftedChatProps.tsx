@@ -1,5 +1,5 @@
 import { CircleX, SendHorizontal } from '@tamagui/lucide-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Bubble, Composer, Day, IMessage } from 'react-native-gifted-chat';
 import CameraIcon from './SvgIcons/cameraIcon';
@@ -11,6 +11,7 @@ interface props {
   onSend: (text: string) => void;
   replyMessage?: IMessage | null;
   onCancelReply?: () => void;
+  onTyping : (isTyping: boolean) => void
 }
 
 export default function ChatBubble(props: any) {
@@ -37,9 +38,11 @@ export default function ChatBubble(props: any) {
       wrapperStyle={{
         right: {
           backgroundColor: '#6734F2',
+          marginRight: 13
         },
         left: {
           backgroundColor: '#EBEBEB',
+          marginLeft: 12
         },
       }}
       textStyle={{
@@ -89,15 +92,52 @@ export function ChatComposer(props: any) {
     );
 }
 
-export function ChatInputToolbar({onSend, replyMessage, onCancelReply}: props) {
+export function ChatInputToolbar({onSend, replyMessage, onCancelReply, onTyping}: props) {
 
   const handleSend = () => {
     if (text.trim().length === 0) return;
+    if (onTyping) {
+      onTyping(false);
+    }
+    
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
     onSend(text.trim());
     setText('');
   };
 
     const [text, setText] = useState('');
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> |null>(null);
+
+  const handleTextChange = (newText: string) => {
+    setText(newText);
+
+    // Emit typing event
+    if (onTyping) {
+      onTyping(true);
+
+      // Clear previous timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      // Stop typing after 2 seconds of no input
+      typingTimeoutRef.current = setTimeout(() => {
+        onTyping(false);
+      }, 2000);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      // Cleanup timeout on unmount
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, []);
+
   
     return (
       <View style={styles.container}>
@@ -124,7 +164,7 @@ export function ChatInputToolbar({onSend, replyMessage, onCancelReply}: props) {
             placeholder="Aa"
             placeholderTextColor="#999"
             value={text}
-            onChangeText={setText}
+            onChangeText={handleTextChange}
             multiline
           />
 

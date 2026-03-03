@@ -89,6 +89,7 @@ export default function SettingsScreen (){
     }
 
 
+
     
 
     return(
@@ -122,26 +123,31 @@ export default function SettingsScreen (){
             <SettingBox
             icon={<NotificationIcon color="#6734F2"/>}
             text="Notifications"
+            onPress={()=> route.push('/(screens)/notification')}
             />
 
             <SettingBox
             icon={<CalenderIcon />}
             text="My adverts"
+            onPress={()=> route.push('/(screens)/myAdvert')}
             />
 
             <SettingBox
             icon={<HelpIcon />}
             text="Help"
+            onPress={()=> route.push('/(screens)/help')}
             />
 
             <SettingBox
             icon={<AccountIcon />}
             text="Account"
+            onPress={()=> route.push('/(screens)/notification')}
             />
 
             <SettingBox
             icon={<TAFIcon />}
             text="Tell a friend"
+            onPress={()=> route.push('/(screens)/notification')}
             />
     
             </View>

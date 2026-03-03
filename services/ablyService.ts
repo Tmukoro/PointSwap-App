@@ -60,6 +60,34 @@ class AblyService {
     return this.channel;
   }
 
+    // Subscribe to typing events
+    subscribeToTyping(
+      conversationId: string,
+      onUserTyping: (userId: string, isTyping: boolean) => void
+    ): void {
+      if (!this.channel) {
+        throw new Error('Channel not initialized');
+      }
+  
+      this.channel.subscribe('typing', (message) => {
+        console.log('Typing event:', message.data);
+        onUserTyping(message.data.user_id, message.data.is_typing);
+      });
+    }
+  
+    // Publish typing event
+    publishTypingStatus(conversationId: string, userId: string, isTyping: boolean): void {
+      if (!this.channel) {
+        console.warn('Channel not initialized, cannot publish typing status');
+        return;
+      }
+  
+      this.channel.publish('typing', {
+        user_id: userId,
+        is_typing: isTyping,
+      });
+    }
+
   // Unsubscribe from current channel
   unsubscribe(): void {
     if (this.channel) {

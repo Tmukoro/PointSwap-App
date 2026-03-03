@@ -95,9 +95,9 @@ export default function RegistrationScreen (){
            <View style={styles.InputContainer2}>
            <Text style={styles.InputText2}>Password</Text>
            <LockIcon style={styles.lockicon} />
-           <TextInput placeholder="•••••••••••••" secureTextEntry = {true} style={{fontWeight: 'bold', width:'82%'}}
+           <TextInput placeholder="•••••••••••••" secureTextEntry = {true} style={{width: '80%'}}
            value={password} onChangeText={setPassword}
-           ></TextInput>
+           />
            </View>
            
            <TouchableOpacity style={styles.InputButton} onPress={RegistrationFunction}>
@@ -213,9 +213,7 @@ const styles = StyleSheet.create({
       borderWidth: 1,
       borderColor: '#c9c9c9',
       borderRadius: 8,
-      paddingRight: 10,
-      paddingTop: 3,
-      paddingBottom: 3,
+      padding: 3,
       flexDirection: 'row',
       alignItems: 'center'
     },
@@ -240,9 +238,7 @@ const styles = StyleSheet.create({
       borderWidth: 1,
       borderColor: '#c9c9c9',
       borderRadius: 8,
-      paddingRight: 10,
-      paddingTop: 3,
-      paddingBottom: 3,
+      padding: 3,
       flexDirection: 'row',
       alignItems: 'center'
     },

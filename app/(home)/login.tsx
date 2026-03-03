@@ -90,7 +90,7 @@ export default function LoginScreen(){
             <View style={styles.InputContainer1}>
             <Text style={styles.InputText1}>Email</Text>
             <SmsIcon style={styles.smsicon} />
-            <TextInput style={{width: '83%'}} placeholder="Emmanuel6@gmail.com"
+            <TextInput style={{width: '80%'}} placeholder="Emmanuel6@gmail.com"
              value={email} onChangeText={setEmail}
             ></TextInput>
             </View>
@@ -99,9 +99,9 @@ export default function LoginScreen(){
            <View style={styles.InputContainer2}>
            <Text style={styles.InputText2}>Password</Text>
            <LockIcon style={styles.lockicon} />
-           <TextInput placeholder="•••••••••••••" secureTextEntry = {true} style={{fontWeight: 'bold', width: '83%'}}
+           <TextInput placeholder="•••••••••••••" secureTextEntry = {true} style={{fontWeight: 'bold', width: '80%'}}
             value={password} onChangeText={setPassword} 
-           ></TextInput>
+           />
            </View>
 
            <View style = {styles.RPbox}>
@@ -152,7 +152,7 @@ export default function LoginScreen(){
 
           {/* REGISTER BOX */}
 
-          <View style={{marginTop: 85, alignSelf: 'flex-start', marginLeft: 18}}>
+          <View style={{justifyContent: 'flex-end', flex: 1, paddingVertical : 70, alignSelf: 'flex-start', paddingHorizontal: 20}}>
             <Text style={{fontSize: 14, color:'#292929'}}>Don&apos;t have an account? 
             <Link href={'/registration'} style={{color: '#6734F2'}}> Register</Link></Text>
           </View>
@@ -184,24 +184,22 @@ const styles = StyleSheet.create({
 
     WBbox :{
         alignSelf: 'flex-start',
-        paddingLeft: 20,
-        paddingTop: 80
+        paddingTop: 80,
+        paddingHorizontal: 25
     },
 
     Inputbox :{
         display: 'flex',
-        alignSelf: 'flex-start',
-        paddingTop: 40,
-        paddingLeft: 17,
-        marginTop: 35
+        alignSelf: 'center',
+        padding: 20,
+        marginTop: 35,
       },
   
       InputContainer1 :{
         borderWidth: 1,
         borderColor: '#c9c9c9',
         borderRadius: 8,
-        paddingTop: 3,
-        paddingBottom: 3,
+        padding: 3,
         flexDirection: 'row',
         alignItems: 'center'
       },
@@ -226,8 +224,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#c9c9c9',
         borderRadius: 8,
-        paddingTop: 3,
-        paddingBottom: 3,
+        padding: 3,
         flexDirection: 'row',
         alignItems: 'center'
       },
@@ -256,17 +253,16 @@ const styles = StyleSheet.create({
       },
 
       RPbox:{
-        paddingTop: 12,
-        paddingBottom: 12,
+        paddingVertical: 12,
         flexDirection: 'row',
         gap: 80,
-        alignItems: 'center'
+        alignItems: 'center',
       },
 
       UVbox:{
         flexDirection: 'row',
         alignItems: 'center',
-        marginTop: 50,
+        marginVertical: 10,
         gap: 5
       },
 

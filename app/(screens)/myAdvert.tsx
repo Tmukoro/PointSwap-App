@@ -1,4 +1,4 @@
-import ItemBox from "@/components/itemBox";
+import AdvertBox from "@/components/advertBox";
 import BackIcon from "@/components/SvgIcons/backIcon";
 import myAdvert from "@/services/myAdvert";
 import { FeedItem } from "@/types/products";
@@ -36,8 +36,11 @@ export default function MyAdvertScreem(){
         )
     }
 
-    const handlePress =()=>{
-        console.log('pressed')
+    const handlePress = (productID: string)=>{
+        route.push({
+            pathname: '/(screens)/advertView',
+            params: {product_id: productID}
+        })
     }
    
 
@@ -47,7 +50,7 @@ export default function MyAdvertScreem(){
 <View style={styles.headerContainer}>
 
 <View style={styles.navigationBox}>
-<TouchableOpacity style={styles.backIcon} onPress={()=> route.back()}>
+<TouchableOpacity style={styles.backIcon} onPress={()=> route.push('/(tabs)/settings')}>
 <BackIcon color={'#000'} />
 <Text style={{fontSize: 16, fontWeight: 400}}>Back</Text>
 </TouchableOpacity>
@@ -59,11 +62,10 @@ export default function MyAdvertScreem(){
               data={feedData}
               keyExtractor={(item)=> item.product_id}
               renderItem={({item})=> (
-                <ItemBox
+                <AdvertBox
                   title={item.title}
                   estimated_size={item.estimated_size}
-                  image_url={item.image_url}
-                   onPress={handlePress}
+                   onPress={()=> handlePress(item.product_id)}
                 />
               )}
               refreshing={loading}
@@ -86,18 +88,20 @@ const styles = StyleSheet.create({
     headerContainer : {
         height: 90,
         width: '100%',
+        borderBottomWidth: 0.5
     },
 
     navigationBox : {
         justifyContent: 'flex-start',
         top: 50,
-        paddingHorizontal: 15
+        paddingHorizontal: 18,
+        paddingVertical: 5,
+        alignContent: 'center'
     },
     
     backIcon:{
         flexDirection: 'row',
         alignItems: 'center',
         gap: 7,
-        top: 2
     },
 })

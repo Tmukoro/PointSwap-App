@@ -14,8 +14,6 @@ import {
   View,
 } from 'react-native';
 
-import axios from 'axios';
-import * as SecureStore from 'expo-secure-store';
 
 import CategoryModal from './categoryModal';
 import CheckIcon from './SvgIcons/checkIcon';
@@ -25,7 +23,8 @@ import UploadIcon from './SvgIcons/UplaodIcon';
 
 import Dropdown from './dropdown';
 
-import { productResponse } from '@/types/products';
+import productService from '@/services/productService';
+import CategoryBoxV2 from './categoryBoxV2';
 interface UploadModalProps {
   visible: boolean;
   onClose: () => void;
@@ -36,12 +35,17 @@ const { height } = Dimensions.get('screen');
 
 const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
   const slideAnim = useRef(new Animated.Value(height)).current;
+  const [showRequiredModal, setShowRequiredModel] = useState<boolean>(false)
+
   const [size, setSize] = useState('')
   const sizeOptions = ['S', 'M', 'L', 'XL'];
   const [category, setCategory] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [wantedCategory, setWantedCategory] = useState<string>(category)
+  const [wantedSize, setWantedSize] = useState<string>('')
 
+  const productID = useRef<string>('')
   
 
   useEffect(() => {
@@ -64,6 +68,15 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
 
   }, [visible, slideAnim]);
 
+  useEffect(() => {
+    if (!visible) {
+        setTitle('')
+        setSize('')
+        setImageUrls([])
+        setWantedSize('')
+    }
+}, [visible])
+
 
   const pickImage = async ()=> {
      let result = await ImagePicker.launchImageLibraryAsync({
@@ -81,38 +94,45 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
      }
   }
 
-  const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/products"
 
 
 
 
  
   const productUploadFunction = async ()=>{
-    let prodUpload = {
-      category : category,
-      image_urls : imageUrls,
-      title: title,
-      estimated_Size: size
-    }
-
-  
-    try {
-
-      const token = await SecureStore.getItemAsync("token")
-
-        await axios.post<productResponse>(apiUrl, prodUpload, {
-        headers : {
-          "Content-Type": "application/json",
-          "Authorization" : `Bearer ${token}`
-        }
-      });
-
+    try{
+      const response = await productService.CreateProduct({
+        category: category,
+        photo_urls: imageUrls,
+        title: title,
+        estimated_size: size
+      })
+      productID.current = response.product_id
+      setShowRequiredModel(true)
       onClose()
     }catch(error){
-      console.log(error)
+      console.error("Could not create Product: ", error)
     }
   }
 
+  const productWantSubmit = async () =>{
+    setWantedCategory(category)
+    try {
+      await productService.CreateProductWant({
+        wantCategory: wantedCategory,
+        wantSize: wantedSize,
+      }, productID.current)
+
+      setShowRequiredModel(false)
+      setCategory('')
+      setWantedCategory('')
+    }catch(error){
+      console.log(error)
+    }
+
+
+
+  }
 
 
   return (
@@ -122,6 +142,12 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
       transparent
       animationType="fade"
       onRequestClose={onClose}
+      onDismiss={()=>{
+        setCategory('')
+        setImageUrls([])
+        setTitle('')
+        setSize('')
+      }}
     >
       {/* Dark overlay - tapping closes modal */}
       <TouchableWithoutFeedback onPress={onClose}>
@@ -133,10 +159,13 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
                 styles.modalContent,
                 { transform: [{ translateY: slideAnim }] },
               ]}
+              pointerEvents='box-none'
             >
               {/* Handle bar */}
               <View style={styles.handleBar}>
-                <CloseIcon onPress={onClose} />
+                <TouchableOpacity onPress={onClose}>
+                <CloseIcon />
+                </TouchableOpacity>
                 <Text style={{color: 'white', fontWeight: '600', fontSize: 16, paddingLeft: 15}}>Add items</Text>
                 <OptionsIcon />
               </View>  
@@ -189,7 +218,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
                <Text style={styles.InputText}>Title (required)</Text>
                <TextInput placeholder="(e.g NYSC White Shirt)"
                 value={title} onChangeText={setTitle}
-               style={{paddingLeft: 11}}
+               style={{paddingLeft: 11, width: '80%'}}
                ></TextInput>
                </View>
 
@@ -231,6 +260,40 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
           </TouchableWithoutFeedback>
         </View>
       </TouchableWithoutFeedback>
+    </Modal>
+
+    {/* PRODUCT WANT */}
+
+    <Modal visible={showRequiredModal} transparent animationType='fade'
+     onDismiss={()=>{
+      setWantedSize('')
+     }}
+    >
+      <View style={styles.PWbox}>
+         
+         <View>
+         <Text>Please provide what size you need</Text>
+         </View>
+        <CategoryBoxV2
+         label='Category'
+         placeholder={category}
+         onSelect={setWantedCategory}
+         />
+
+        <Dropdown
+          label='Estimated Size(required)'
+          placeholder='Select'
+          options={sizeOptions}
+          selectedValue={wantedSize}
+          onSelect={setWantedSize}
+           />
+
+           <TouchableOpacity style={styles.PWbtn} onPress={productWantSubmit}>
+            <Text style={{color: 'white'}}>Done</Text>
+           </TouchableOpacity>
+
+      </View>
+
     </Modal>
 
     </>
@@ -378,8 +441,25 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 8,
     alignItems: 'flex-end'
-  }
+  },
 
+  PWbox : {
+    padding: 20,
+    backgroundColor: '#fff',
+    margin: 'auto',
+    width: '90%',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#c9c9c9'
+  },
+
+  PWbtn : {
+    backgroundColor: '#6734F2',
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 16,
+    alignItems: 'center',
+  }
 
 });
 

@@ -16,10 +16,6 @@ export default function ProductViewScreen(){
     const {product_id} = useLocalSearchParams();
     const apiUrl = `http://192.168.0.134:8080/pointSwapApi/v1/products/${product_id}`;
 
-    const messageApiUrl = `http://192.168.0.134:8080/pointSwapApi/v1/messages`
-
-
-    
     const [imageUrls, setImageUrls] = useState<string[]>([])
     const [title, setTitle] = useState<string>('')
     const [category, setCategory] = useState<string>('')

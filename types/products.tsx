@@ -16,12 +16,6 @@ export interface MyProductResponse {
     data : FeedItem[]
 }
 
-export interface ImageContent {
-    photo_id : string,
-    product_id : string,
-    image_url : string,
-    display_order: 1
-}
 
 export interface ProductByIDImageContent {
     photo_id : string,
@@ -29,23 +23,6 @@ export interface ProductByIDImageContent {
     image_url : string
 }
 
-
-
-export interface productResponse {
-    data : {
-        product : {
-            product_id : string,
-            sellers : {
-                user_id : string,
-            },
-            title : string,
-            category : string,
-            estimated_size: string,
-            status : string,
-            photos : [ImageContent],
-        }
-    }
-}
 
 export interface ProductByIdResponse {
     data:{
@@ -61,5 +38,20 @@ export interface ProductByIdResponse {
         estimated_size: string,
         status: string,
         photos: [ProductByIDImageContent]
+    }
+}
+
+//Product want creation
+export interface ProductCreation {
+    data : {
+        product_id : string
+    }
+}
+
+export interface PWGetResponse {
+    data : {
+        want_id : string,
+        wanted_category : string,
+        wanted_size : string
     }
 }

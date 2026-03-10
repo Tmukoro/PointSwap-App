@@ -40,8 +40,8 @@ export default function FourthRoute  () {
 
     const handlePress = (productID: string)=>{
         route.push({
-           pathname: '/(screens)/productView',
-           params: {product_id: productID}
+            pathname: '/(tabs)/productView',
+            params: {product_id: productID}
         }) 
     };
 

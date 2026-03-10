@@ -7,7 +7,7 @@ import userStatus from "@/services/userStatus";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { GiftedChat, IMessage } from "react-native-gifted-chat";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -38,7 +38,6 @@ export default function ChatScreen(){
       
     const [messages, setMessages] = useState<IMessage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [replyMessage, setReplyMessage] = useState<IMessage | null>(null)
     const [isRecipientTyping, setIsRecipientTyping] = useState(false)
   
 
@@ -48,8 +47,14 @@ export default function ChatScreen(){
 
       initializeChat();
       loadRecipientStatus();
+
+      // Poll for status every 10 seconds
+     const statusInterval = setInterval(() => {
+      loadRecipientStatus();
+    }, 10000); // Check every 10 seconds
   
       return () => {
+        clearInterval(statusInterval)
         ablyService.unsubscribe();
         ablyService.disconnect();
       };
@@ -77,9 +82,6 @@ export default function ChatScreen(){
         
         // 4. Subscribe to new messages
         ablyService.subscribeToConversation(conversationId, handleNewMessage);
-
-            // Subscribe to typing events
-    ablyService.subscribeToTyping(conversationId, handleTypingEvent);
         
         // 5. Mark as read
         await messageService.markAsRead(conversationId);
@@ -93,20 +95,23 @@ export default function ChatScreen(){
   
     // Handle new messages from Ably
     const handleNewMessage = (messageData: any) => {
+      console.log('Received message:', messageData);
       
-      // Don't add if it's from current user (already added optimistically)
       if (messageData.sender_id === currentUserId) {
+        console.log('Skipping own message from Ably');
         return;
       }
     
       const formattedMessage: IMessage = {
         _id: messageData.id,
-        text: messageData.message_text,
+        text: messageData.message_text || '',
         createdAt: new Date(messageData.created_at),
         user: {
           _id: messageData.sender_id,
           name: recipientName,
         },
+        // Add image if present
+        ...(messageData.image_url && { image: messageData.image_url }),
       };
     
       setMessages((previousMessages) => {
@@ -123,56 +128,58 @@ export default function ChatScreen(){
     const formatMessagesForGiftedChat = (backendMessages: any[]): IMessage[] => {
       return backendMessages.map((msg) => ({
         _id: msg.id,
-        text: msg.message_text,
+        text: msg.message_text || '', // Empty text if only image
         createdAt: new Date(msg.created_at),
         user: {
           _id: msg.sender_id,
           name: msg.sender_name,
           avatar: msg.sender_avatar,
         },
+        // Add image if present
+        ...(msg.image_url && { image: msg.image_url }),
       }));
     };
   
     // Send message handler
 
-    const onSend = useCallback(async (text: string, replyTo?: IMessage) => {
-      const newMessage: IMessage = {
-        _id: Math.random().toString(),
-        text: text,
-        createdAt: new Date(),
-        user: {
-          _id: currentUserId,
-        },
-        // Add reply reference if replying
-        ...(replyMessage && {
-          replyTo: {
-            _id: replyMessage._id,
-            text: replyMessage.text,
-          }
-        })
-      };
+    const onSend = useCallback(async (text: string, imageUri?: string) => {
+      let imageUrl: string | undefined;
     
       try {
+        // Upload image if present
+        if (imageUri) {
+          setIsLoading(true);
+          imageUrl = await messageService.uploadImage(imageUri);
+          console.log('Image uploaded:', imageUrl);
+        }
+    
+        const newMessage: IMessage = {
+          _id: Math.random().toString(),
+          text: text || '', // Empty text if only image
+          createdAt: new Date(),
+          user: {
+            _id: currentUserId,
+          },
+          // Add image if present
+          ...(imageUrl && { image: imageUrl }),
+        };
+    
+        // Optimistically add to UI
         setMessages((previousMessages) =>
           GiftedChat.append(previousMessages, [newMessage])
         );
-        await messageService.sendMessage(conversationId, text);
-        setReplyMessage(null); // Clear reply after sending
+    
+        // Send to backend
+        await messageService.sendMessage(conversationId, text, imageUrl);
       } catch (error) {
         console.error('Error sending message:', error);
+        Alert.alert('Error', 'Failed to send message');
+      } finally {
+        setIsLoading(false);
       }
     }, [conversationId, currentUserId]);
 
-    const onLongPress = useCallback((context: any, message: IMessage) => {
-      setReplyMessage(message);
-    }, []);
 
-    const handleTypingEvent = (userId: string, isTyping: boolean) => {
-      // Only show typing if it's the other person, not you
-      if (userId !== currentUserId) {
-        setIsRecipientTyping(isTyping);
-      }
-    };
 
     const handleUserTyping = (isTyping: boolean) => {
       ablyService.publishTypingStatus(conversationId, currentUserId, isTyping);
@@ -259,13 +266,10 @@ export default function ChatScreen(){
           renderInputToolbar={()=>
            <ChatInputToolbar
             onSend={onSend}
-             replyMessage={replyMessage}
-             onCancelReply={()=> setReplyMessage(null)} 
              onTyping={handleUserTyping}
            />}
           isAlignedTop={true}
           messagesContainerStyle={styles.messageContainer}
-          onLongPressMessage={onLongPress}
           renderAvatar={null}
           renderFooter={isRecipientTyping ? renderFooter : undefined}        
         />

@@ -6,9 +6,9 @@ import ThirdRoute from "@/tabHomePages/thirdRoute";
 import { GetUserDetails } from "@/types/profile";
 import axios from "axios";
 import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Animated, Image, StyleSheet, Text, View, useWindowDimensions } from "react-native";
-import { SceneMap, TabBar, TabView } from 'react-native-tab-view';
+import { TabBar, TabView } from 'react-native-tab-view';
 export default function TabHomeScreen (){
 
     const [avatar_url, setAvatarUrl] = useState<string | null>('');
@@ -18,13 +18,16 @@ export default function TabHomeScreen (){
 
 
 
-    const renderScene = SceneMap({
-        first: FirstRoute,
-        second: SecondRoute,
-        third: ThirdRoute,
-        fourth: FourthRoute,
-        fifth: FifthRoute
-    })
+    const renderScene = ({ route }: { route: { key: string } }) => {
+        switch (route.key) {
+            case 'first': return <FirstRoute />
+            case 'second': return <SecondRoute />
+            case 'third': return <ThirdRoute />
+            case 'fourth': return <FourthRoute />
+            case 'fifth': return <FifthRoute />
+            default: return null
+        }
+    }
 
 
     const routes = [
@@ -36,7 +39,13 @@ export default function TabHomeScreen (){
     ]
 
     const layout = useWindowDimensions();
-    const [index, setIndex] = useState(0);
+    const savedIndex = useRef(0)
+    const [index, setIndex] = useState(0)
+    
+    const handleIndexChange = (newIndex: number) => {
+        savedIndex.current = newIndex
+        setIndex(newIndex)
+    }
 
 
 
@@ -74,6 +83,7 @@ const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
         fetUserData();
 
     }, [])
+
 
     if(loading || !token){
         return <ActivityIndicator size={'large'}></ActivityIndicator>
@@ -120,7 +130,8 @@ const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
             <TabView
             navigationState={{ index, routes }}
             renderScene={renderScene}
-            onIndexChange={setIndex}
+            lazy
+            onIndexChange={handleIndexChange}
             initialLayout={{ width: layout.width }}
              renderTabBar={props => (
                

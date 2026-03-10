@@ -2,9 +2,9 @@ import ItemBox from "@/components/itemBox";
 import SortIcon from "@/components/SvgIcons/sortIcon";
 import { FeedItem, FeedResponse } from "@/types/products";
 import axios from "axios";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function FirstRoute  () {
@@ -36,13 +36,17 @@ export default function FirstRoute  () {
         }
     };
 
-    useEffect(()=>{
-        fetchFeed();
-    }, []);
-
+    useFocusEffect(
+        useCallback(() => {
+            if (feedData.length === 0) {
+                fetchFeed();
+            }
+        }, [feedData])
+    );
+    
     const handlePress = (productID: string)=>{
         route.push({
-           pathname: '/(screens)/productView',
+           pathname: '/(tabs)/productView',
            params: {product_id: productID}
         })
         

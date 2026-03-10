@@ -70,11 +70,18 @@ export default function TabsLayout (){
                 headerTitleStyle: {fontSize: 24, top: 15}
               }}
             />
-             
-            
 
-
+            <Tabs.Screen name="productView"
+               options={{
+                headerShown: false,
+                href: null,
+                tabBarStyle: {display: "none"}
+               }}
+            />             
+          
         </Tabs>
+
+
 
         <UploadModal
              visible={isModalVisible}

@@ -9,6 +9,7 @@ import { useState } from "react";
 
 
 import messageService from "@/services/messageService";
+import userStatus from "@/services/userStatus";
 import { LoginResponse } from "@/types/auth";
 import axios from "axios";
 import * as SecureStore from 'expo-secure-store';
@@ -53,6 +54,8 @@ export default function LoginScreen(){
       await SecureStore.setItemAsync("user_id", userID)
 
       messageService.setAuthToken(token)
+      userStatus.setAuthToken(token);
+      await userStatus.updateStatus(true);
 
       router.push('/home')
 

@@ -46,20 +46,22 @@ class MessageService {
   }
 
   // Start a new conversation (send first message)
-  async sendFirstMessage(recipientId: string, messageText: string) {
+  async sendFirstMessage(recipientId: string, messageText: string, imageUrl?: string) {
     const response = await this.axiosInstance.post('/messages', {
       recipient_id: recipientId,
       message_text: messageText,
+      image_url: imageUrl,
     });
     return response.data.data;
   }
 
   // Send message to existing conversation
-  async sendMessage(conversationId: string, messageText: string): Promise<Message> {
+  async sendMessage(conversationId: string, messageText: string, imageUrl?: string): Promise<Message> {
     const response = await this.axiosInstance.post(
       `/conversations/${conversationId}/messages`,
       {
         message_text: messageText,
+        image_url: imageUrl,
       }
     );
     return response.data.data.message;
@@ -80,6 +82,34 @@ class MessageService {
   async markAsRead(conversationId: string): Promise<void> {
     await this.axiosInstance.put(`/conversations/${conversationId}/read`);
   }
+
+
+
+  async uploadImage(imageUri: string): Promise<string> {
+    const formData = new FormData();
+    
+    // Get file extension
+    const filename = imageUri.split('/').pop() || 'image.jpg';
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
+  
+    formData.append('image', {
+      uri: imageUri,
+      name: filename,
+      type: type,
+    } as any);
+  
+    const response = await this.axiosInstance.post('/upload/image', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  
+    return response.data.data.image_url;
+  }
+
+
+
 }
 
 

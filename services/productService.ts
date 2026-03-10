@@ -38,13 +38,14 @@ class ProductService {
             estimated_size: estimated_size,
         },{
             headers: {
-
                 Authorization: `Bearer ${token}`
             }
         })
 
         return response.data.data
     }
+
+    //Create what the user wants in return
 
     async CreateProductWant({wantCategory, wantSize}: ProductWant, productID: string){
         const token = await SecureStore.getItemAsync('token')

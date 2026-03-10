@@ -32,7 +32,7 @@ export default function ProductViewScreen(){
 
     useEffect(()=>{
         const getUserID = async ()=>{
-            const userID = await SecureStore.getItemAsync('token')
+            const userID = await SecureStore.getItemAsync('user_id')
             setCurrentUserID(userID || '')
         }
         getUserID()
@@ -67,9 +67,25 @@ export default function ProductViewScreen(){
           }
     }
 
+    const loadSellerStatus = async () => {
+        const status = await userStatus.getUserStatus(sellerID);
+        setIsSellerOnline(status.is_online);
+        setSellerLastSeen(status.last_seen ? new Date(status.last_seen) : null);
+      };
+
     useEffect(()=>{
-        loadProductData()
-    }, [])
+        if(product_id){
+            loadProductData()
+            const statusInterval = setInterval(() => {
+                if (sellerID) {
+                  loadSellerStatus();
+                }
+              }, 10000);
+            
+              return () => clearInterval(statusInterval);
+        }
+        
+    }, [product_id])
 
     const handleMessage = async () => {
         try {
@@ -262,6 +278,7 @@ const styles = StyleSheet.create({
 
     headerContainer : {
         height: 90,
+        maxHeight: 90,
         width: '100%',
     },
 
@@ -275,7 +292,8 @@ const styles = StyleSheet.create({
     backIcon:{
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 7
+      gap: 7,
+      alignSelf: 'center'
     },
 
     ImageContainer: {
@@ -346,7 +364,7 @@ const styles = StyleSheet.create({
     messageCont: {
         width: '100%',
         padding: 20,
-        marginTop: 3,
+        marginVertical: 4,
         borderRadius: 2,
         backgroundColor: '#FFFAEB',
         alignSelf: 'center'
@@ -354,9 +372,9 @@ const styles = StyleSheet.create({
 
     contactOption: {
         width: '100%',
-        height: 100,
-        marginTop: 10,
-        justifyContent : 'center'
+        height: 80,
+        justifyContent : 'flex-end',
+        paddingVertical: 5,
     },
 
     boxc: {

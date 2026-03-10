@@ -1,6 +1,7 @@
-import { CircleX, SendHorizontal } from '@tamagui/lucide-icons';
+import { SendHorizontal, X } from '@tamagui/lucide-icons';
+import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useRef, useState } from 'react';
-import { Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Modal, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Bubble, Composer, Day, IMessage } from 'react-native-gifted-chat';
 import CameraIcon from './SvgIcons/cameraIcon';
 import MicIcon from './SvgIcons/micIcon';
@@ -8,55 +9,77 @@ import MicIcon from './SvgIcons/micIcon';
 
 
 interface props {
-  onSend: (text: string) => void;
+  onSend: (text: string, imageUri?:string) => void;
   replyMessage?: IMessage | null;
   onCancelReply?: () => void;
   onTyping : (isTyping: boolean) => void
 }
 
 export default function ChatBubble(props: any) {
-  const {currentMessage} = props
+  const { currentMessage } = props;
+  const [showImageModal, setShowImageModal] = useState(false);
+
   return (
     <View>
-    {/* Show replied message if exists */}
-    {currentMessage.replyTo && (
-      <View style={[
-        styles.replyPreview,
-        currentMessage.user._id === props.user._id 
-          ? styles.replyPreviewRight 
-          : styles.replyPreviewLeft
-      ]}>
-        <Text style={styles.replyText} numberOfLines={1}>
-          {currentMessage.replyTo.text}
-        </Text>
-      </View>
-    )}
+      <Bubble
+        {...props}
+        wrapperStyle={{
+          right: {
+            backgroundColor: '#6734F2',
+            marginRight: 13
+          },
+          left: {
+            backgroundColor: '#EBEBEB',
+            marginLeft: 12
+          },
+        }}
+        textStyle={{
+          right: {
+            color: '#fff',
+            fontSize: 14,
+            fontWeight: 400
+          },
+          left: {
+            color: '#000',
+          },
+        }}
+        renderMessageImage={() => {
+          if (!currentMessage.image) return null;
+          
+          return (
+            <>
+              <TouchableOpacity onPress={() => setShowImageModal(true)}>
+                <Image
+                  source={{ uri: currentMessage.image }}
+                  style={styles.messageImage}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
 
-
-    <Bubble
-      {...props}
-      wrapperStyle={{
-        right: {
-          backgroundColor: '#6734F2',
-          marginRight: 13
-        },
-        left: {
-          backgroundColor: '#EBEBEB',
-          marginLeft: 12
-        },
-      }}
-      textStyle={{
-        right: {
-          color: '#fff',
-          fontSize: 14,
-          fontWeight: 400
-        },
-        left: {
-          color: '#000',
-        },
-      }}
-    />
-
+              {/* Full screen image modal */}
+              <Modal
+                visible={showImageModal}
+                transparent={true}
+                onRequestClose={() => setShowImageModal(false)}
+              >
+                <View style={styles.modalContainer}>
+                  <TouchableOpacity 
+                    style={styles.closeButton}
+                    onPress={() => setShowImageModal(false)}
+                  >
+                    <X size={30} color="#fff" />
+                  </TouchableOpacity>
+                  <Image
+                    source={{ uri: currentMessage.image }}
+                    style={styles.fullImage}
+                    resizeMode="contain"
+                  />
+                </View>
+              </Modal>
+            </>
+          );
+        }}
+      />
     </View>
   );
 }
@@ -105,11 +128,38 @@ export function ChatInputToolbar({onSend, replyMessage, onCancelReply, onTyping}
     }
     onSend(text.trim());
     setText('');
+    setSelectedImage(null);
   };
+
+  const pickImage = async () => {
+    // Request permissions
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Please grant camera roll permissions to send images');
+      return;
+    }
+  
+    // Launch image picker with camera option
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+      allowsMultipleSelection: false,
+    });
+  
+    if (!result.canceled) {
+      setSelectedImage(result.assets[0].uri);
+    }
+  };
+  
 
     const [text, setText] = useState('');
     const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> |null>(null);
-
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    
   const handleTextChange = (newText: string) => {
     setText(newText);
 
@@ -141,17 +191,16 @@ export function ChatInputToolbar({onSend, replyMessage, onCancelReply, onTyping}
   
     return (
       <View style={styles.container}>
-      {/* Reply Preview - positioned above the input row */}
-      {replyMessage && (
-        <View style={styles.replyContainer}>
-          <View style={styles.replyContent}>
-            <Text style={styles.replyLabel}>Replying to</Text>
-            <Text style={styles.replyText} numberOfLines={1}>
-              {replyMessage.text}
-            </Text>
-          </View>
-          <TouchableOpacity onPress={onCancelReply} style={styles.cancelButton}>
-            <CircleX size={'$1'} />
+
+            {/* Image preview */}
+            {selectedImage && (
+        <View style={styles.imagePreviewContainer}>
+          <Image source={{ uri: selectedImage }} style={styles.imagePreview} />
+          <TouchableOpacity 
+            style={styles.removeImageButton}
+            onPress={() => setSelectedImage(null)}
+          >
+            <X size={16} color="#fff" />
           </TouchableOpacity>
         </View>
       )}
@@ -176,7 +225,11 @@ export function ChatInputToolbar({onSend, replyMessage, onCancelReply, onTyping}
         </View>
 
         <View style={styles.icons}>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity
+          style={styles.iconButton}
+          onPress={pickImage}
+          disabled={isUploading}
+          >
             <CameraIcon />
           </TouchableOpacity>
           <TouchableOpacity style={styles.iconButton}>
@@ -271,20 +324,49 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
 
-  replyPreview: {
-    backgroundColor: '#f0f0f0',
-    padding: 6,
-    marginHorizontal: 10,
-    marginBottom: -8,
+
+  imagePreviewContainer: {
+    marginBottom: 10,
+    position: 'relative',
+  },
+  imagePreview: {
+    width: 100,
+    height: 100,
     borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: '#757575',
-    marginTop: 6,
   },
-  replyPreviewRight: {
-    marginLeft: 50,
+  removeImageButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  replyPreviewLeft: {
-    marginRight: 50,
+  messageImage: {
+    width: 200,
+    height: 200,
+    borderRadius: 12,
+    marginTop: 5,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1,
+    padding: 10,
+  },
+
+  fullImage: {
+    width: 100,
+    height: 100
   },
 });

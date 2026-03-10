@@ -5,6 +5,7 @@ export interface Message {
   sender_name: string;
   sender_avatar: string | null;
   message_text: string;
+  image_url?: string | null; 
   is_read: boolean;
   created_at: string;
   deleted_at: string | null;
@@ -27,4 +28,5 @@ export interface Conversation {
 export interface SendMessageRequest {
   recipient_id: string;
   message_text: string;
+  image_url?: string;
 }

@@ -40,7 +40,7 @@ export default function ThirdRoute  () {
 
     const handlePress = (productID: string)=>{
         route.push({
-           pathname: '/(screens)/productView',
+           pathname: '/(tabs)/productView',
            params: {product_id: productID}
         })
         

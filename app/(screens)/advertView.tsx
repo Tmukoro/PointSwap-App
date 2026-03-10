@@ -309,14 +309,16 @@ const styles = StyleSheet.create({
         backgroundColor : 'red',
         padding: 15,
         borderRadius: 8,
-        paddingHorizontal: 50
+        paddingHorizontal: 50,
+        alignItems: 'center'
     },
 
     btn2 : {
-        backgroundColor: 'green',
+        backgroundColor: '#6734F2',
         padding: 15,
         borderRadius: 8,
-        paddingHorizontal: 50
+        paddingHorizontal: 50,
+        alignItems: 'center'
     },
 
     btnTxt : {

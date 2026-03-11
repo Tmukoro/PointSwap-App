@@ -80,7 +80,7 @@ export default function ProductViewScreen(){
                 if (sellerID) {
                   loadSellerStatus();
                 }
-              }, 10000);
+              }, 30000);
             
               return () => clearInterval(statusInterval);
         }

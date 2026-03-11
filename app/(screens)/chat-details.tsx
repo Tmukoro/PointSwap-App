@@ -51,7 +51,7 @@ export default function ChatScreen(){
       // Poll for status every 10 seconds
      const statusInterval = setInterval(() => {
       loadRecipientStatus();
-    }, 10000); // Check every 10 seconds
+    }, 30000); // Check every 10 seconds
   
       return () => {
         clearInterval(statusInterval)
@@ -95,7 +95,6 @@ export default function ChatScreen(){
   
     // Handle new messages from Ably
     const handleNewMessage = (messageData: any) => {
-      console.log('Received message:', messageData);
       
       if (messageData.sender_id === currentUserId) {
         console.log('Skipping own message from Ably');
@@ -266,7 +265,6 @@ export default function ChatScreen(){
           renderInputToolbar={()=>
            <ChatInputToolbar
             onSend={onSend}
-             onTyping={handleUserTyping}
            />}
           isAlignedTop={true}
           messagesContainerStyle={styles.messageContainer}

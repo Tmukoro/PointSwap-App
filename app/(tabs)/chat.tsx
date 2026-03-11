@@ -1,10 +1,11 @@
 import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import messageService from "@/services/messageService";
 import { Conversation } from "@/types/message";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function ChatScreen (){
 
@@ -26,9 +27,9 @@ export default function ChatScreen (){
 
 
 
-    useEffect(()=>{
+    useFocusEffect(()=>{
         loadConversations();
-    }, [])
+    },)
 
     
 

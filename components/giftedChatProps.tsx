@@ -1,8 +1,8 @@
 import { SendHorizontal, X } from '@tamagui/lucide-icons';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Modal, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
-import { Bubble, Composer, Day, IMessage } from 'react-native-gifted-chat';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, Image, Modal, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Bubble, Composer, Day } from 'react-native-gifted-chat';
 import CameraIcon from './SvgIcons/cameraIcon';
 import MicIcon from './SvgIcons/micIcon';
 
@@ -10,9 +10,6 @@ import MicIcon from './SvgIcons/micIcon';
 
 interface props {
   onSend: (text: string, imageUri?:string) => void;
-  replyMessage?: IMessage | null;
-  onCancelReply?: () => void;
-  onTyping : (isTyping: boolean) => void
 }
 
 export default function ChatBubble(props: any) {
@@ -115,19 +112,12 @@ export function ChatComposer(props: any) {
     );
 }
 
-export function ChatInputToolbar({onSend, replyMessage, onCancelReply, onTyping}: props) {
+export function ChatInputToolbar({onSend}: props) {
 
   const handleSend = () => {
-    if (text.trim().length === 0) return;
-    if (onTyping) {
-      onTyping(false);
-    }
-    
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    onSend(text.trim());
-    setText('');
+    if (text.trim().length === 0 && !selectedImage) return;
+    onSend(text.trim(), selectedImage || undefined);
+     setText('');
     setSelectedImage(null);
   };
 
@@ -142,8 +132,8 @@ export function ChatInputToolbar({onSend, replyMessage, onCancelReply, onTyping}
   
     // Launch image picker with camera option
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      mediaTypes: 'images',
+      allowsEditing: false,
       aspect: [4, 3],
       quality: 0.8,
       allowsMultipleSelection: false,
@@ -156,37 +146,14 @@ export function ChatInputToolbar({onSend, replyMessage, onCancelReply, onTyping}
   
 
     const [text, setText] = useState('');
-    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> |null>(null);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
     
   const handleTextChange = (newText: string) => {
     setText(newText);
-
-    // Emit typing event
-    if (onTyping) {
-      onTyping(true);
-
-      // Clear previous timeout
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-
-      // Stop typing after 2 seconds of no input
-      typingTimeoutRef.current = setTimeout(() => {
-        onTyping(false);
-      }, 2000);
-    }
   };
 
-  useEffect(() => {
-    return () => {
-      // Cleanup timeout on unmount
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, []);
+
 
   
     return (
@@ -217,14 +184,24 @@ export function ChatInputToolbar({onSend, replyMessage, onCancelReply, onTyping}
             multiline
           />
 
-          {text.trim().length > 0 && (
-            <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
-              <SendHorizontal color={'white'} size={'$1'} />
+{(text.trim().length > 0 || selectedImage) && (
+            <TouchableOpacity 
+              style={styles.sendButton} 
+              onPress={handleSend}
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <SendHorizontal color={'white'} size={'$1'} />
+              )}
             </TouchableOpacity>
           )}
         </View>
 
         <View style={styles.icons}>
+
+         {/* CAMERA FUNCTION ICON */}   
           <TouchableOpacity
           style={styles.iconButton}
           onPress={pickImage}
@@ -232,6 +209,8 @@ export function ChatInputToolbar({onSend, replyMessage, onCancelReply, onTyping}
           >
             <CameraIcon />
           </TouchableOpacity>
+          
+
           <TouchableOpacity style={styles.iconButton}>
             <MicIcon />
           </TouchableOpacity>

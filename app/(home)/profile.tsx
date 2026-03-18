@@ -1,13 +1,14 @@
-import axios from 'axios';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-import { ProfileResponse } from '@/types/auth';
+import authService from '@/services/authService';
+import uploadService from '@/services/uploadService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight } from "@tamagui/lucide-icons";
 import * as SecureStore from 'expo-secure-store';
+import { Alert } from 'react-native';
 
 
 
@@ -22,7 +23,7 @@ export default function ProfileSetUpScreen (){
 
     const [first_name, setFirstName] = useState<string>('');
     const [last_name, setLastName] = useState<string>('');
-    const [avatar_url, setAvatarUrl] = useState<string>('')
+    const [localImageUri, setLocalImageUri] = useState<string>('')
     const [email, setEmail] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null)
 
@@ -45,34 +46,21 @@ export default function ProfileSetUpScreen (){
     }
 
     const ProfileSave = async () => {
-
-      const storedToken = await SecureStore.getItemAsync("token")
-
-      if(!storedToken){
-        console.log("No token found")
-        return
+  
+      if (!localImageUri) {
+        Alert.alert('Error', 'Please add a profile photo');
+        return;
       }
 
-      let profReq = {
-        first_name: first_name,
-        last_name: last_name,
-        avatar_url: avatar_url
-      };
-
       try{
-        const response = await axios.post<ProfileResponse>(apiUrl, profReq, {
-         headers:  { 
-          "Content-Type":"application/json",
-          "Authorization":`Bearer ${storedToken}`
-         },
-         
-        });
 
-        const firstName = response.data.data.profile_Update.first_name
-        const avatar = response.data.data.profile_Update.avatar_url
+        await uploadService.uploadImage(localImageUri, "profile")
 
-        await AsyncStorage.setItem("first_name", firstName)
-        await AsyncStorage.setItem("avatar_url", avatar)
+        await authService.profileSetUp({
+          first_name: first_name,
+          last_name: last_name,
+          avatar_url: localImageUri
+        })
 
 
         route.push("/location")
@@ -100,7 +88,7 @@ export default function ProfileSetUpScreen (){
     
         if (!result.canceled) {
           const imageUri = (result.assets[0].uri);
-          setAvatarUrl(imageUri)
+          setLocalImageUri(imageUri)
         }
       };
 
@@ -116,9 +104,9 @@ export default function ProfileSetUpScreen (){
 
           <View style={styles.imagecontainer}>
           <TouchableOpacity onPress={pickImage} style={styles.imageCircle}>
-            <Text style={{color: 'black', position: 'absolute'}}>Add Photo</Text>
-          {avatar_url && <Image source={{ uri: avatar_url }} style={styles.image} />}
-          </TouchableOpacity>
+          {!localImageUri && <Text style={{color: 'black', position: 'absolute'}}>Add Photo</Text>}
+          {localImageUri && <Image source={{ uri: localImageUri }} style={styles.image} />}
+        </TouchableOpacity>
          </View>
 
 

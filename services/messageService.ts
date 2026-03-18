@@ -57,12 +57,14 @@ class MessageService {
 
   // Send message to existing conversation
   async sendMessage(conversationId: string, messageText: string, imageUrl?: string): Promise<Message> {
+    const payload = {
+      message_text: messageText,
+      image_url: imageUrl,
+    };
+        
     const response = await this.axiosInstance.post(
       `/conversations/${conversationId}/messages`,
-      {
-        message_text: messageText,
-        image_url: imageUrl,
-      }
+      payload
     );
     return response.data.data.message;
   }
@@ -88,7 +90,6 @@ class MessageService {
   async uploadImage(imageUri: string): Promise<string> {
     const formData = new FormData();
     
-    // Get file extension
     const filename = imageUri.split('/').pop() || 'image.jpg';
     const match = /\.(\w+)$/.exec(filename);
     const type = match ? `image/${match[1]}` : 'image/jpeg';
@@ -99,13 +100,20 @@ class MessageService {
       type: type,
     } as any);
   
-    const response = await this.axiosInstance.post('/upload/image', formData, {
+    const response = await this.axiosInstance.post('/upload/image?type=chat', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
   
-    return response.data.data.image_url;
+    // Handle both singular and plural responses
+    const imageUrl = response.data.data.image_url || response.data.data.image_urls?.[0];
+    
+    if (!imageUrl) {
+      throw new Error('No image URL returned from server');
+    }
+  
+    return imageUrl;
   }
 
 

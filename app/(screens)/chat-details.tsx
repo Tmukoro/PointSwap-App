@@ -38,7 +38,6 @@ export default function ChatScreen(){
       
     const [messages, setMessages] = useState<IMessage[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isRecipientTyping, setIsRecipientTyping] = useState(false)
   
 
     // Initialize chat ONLY when currentUserId is available
@@ -142,58 +141,56 @@ export default function ChatScreen(){
     // Send message handler
 
     const onSend = useCallback(async (text: string, imageUri?: string) => {
-      let imageUrl: string | undefined;
+      console.log('onSend called with:', { text, imageUri });
+      
+      const tempId = `temp-${Date.now()}`;
+      
+      const newMessage: IMessage = {
+        _id: tempId,
+        text: text || '',
+        createdAt: new Date(),
+        user: {
+          _id: currentUserId,
+        },
+        pending: true,
+        ...(imageUri && { image: imageUri }),
+      };
+    
+      setMessages((previousMessages) =>
+        GiftedChat.append(previousMessages, [newMessage])
+      );
     
       try {
-        // Upload image if present
+        let imageUrl: string | undefined;
+    
         if (imageUri) {
-          setIsLoading(true);
+          console.log('Starting image upload...');
           imageUrl = await messageService.uploadImage(imageUri);
-          console.log('Image uploaded:', imageUrl);
+          console.log('Image uploaded successfully:', imageUrl);
         }
     
-        const newMessage: IMessage = {
-          _id: Math.random().toString(),
-          text: text || '', // Empty text if only image
-          createdAt: new Date(),
-          user: {
-            _id: currentUserId,
-          },
-          // Add image if present
-          ...(imageUrl && { image: imageUrl }),
-        };
-    
-        // Optimistically add to UI
-        setMessages((previousMessages) =>
-          GiftedChat.append(previousMessages, [newMessage])
-        );
-    
-        // Send to backend
+        console.log('Sending message to backend:', { text, imageUrl });
         await messageService.sendMessage(conversationId, text, imageUrl);
-      } catch (error) {
-        console.error('Error sending message:', error);
-        Alert.alert('Error', 'Failed to send message');
-      } finally {
-        setIsLoading(false);
+        console.log('Message sent successfully');
+    
+        setMessages((previousMessages) =>
+          previousMessages.map(msg => 
+            msg._id === tempId 
+              ? { ...msg, pending: false, ...(imageUrl && { image: imageUrl }) }
+              : msg
+          )
+        );
+      } catch (error: any) {
+        console.error('Error details:', error);
+        console.error('Error response:', error.response?.data);
+        Alert.alert('Error', error.response?.data?.message || 'Failed to send message');
+        
+        setMessages((previousMessages) =>
+          previousMessages.filter(msg => msg._id !== tempId)
+        );
       }
     }, [conversationId, currentUserId]);
 
-
-
-    const handleUserTyping = (isTyping: boolean) => {
-      ablyService.publishTypingStatus(conversationId, currentUserId, isTyping);
-    };
-
-    const renderFooter = () => {
-      return (
-        <View style={styles.typingContainer}>
-          <View style={styles.typingBubble}>
-            <Text style={styles.typingText}>typing...</Text>
-          </View>
-        </View>
-      );
-    };
-    
     
   
 
@@ -253,13 +250,6 @@ export default function ChatScreen(){
           user={{
             _id: currentUserId,
           }}
-          
-          reply={{
-            swipe: {
-              isEnabled: true,
-              direction: 'left',
-            }
-          }}
           renderBubble={(props)=> <ChatBubble {...props} />}
           renderDay={(props)=> <DayProp {...props} />}
           renderInputToolbar={()=>
@@ -269,7 +259,6 @@ export default function ChatScreen(){
           isAlignedTop={true}
           messagesContainerStyle={styles.messageContainer}
           renderAvatar={null}
-          renderFooter={isRecipientTyping ? renderFooter : undefined}        
         />
 
         </KeyboardAvoidingView>

@@ -24,6 +24,7 @@ import UploadIcon from './SvgIcons/UplaodIcon';
 import Dropdown from './dropdown';
 
 import productService from '@/services/productService';
+import uploadService from '@/services/uploadService';
 import CategoryBoxV2 from './categoryBoxV2';
 interface UploadModalProps {
   visible: boolean;
@@ -42,6 +43,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
   const [category, setCategory] = useState<string>('');
   const [title, setTitle] = useState<string>('');
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [localImageUris, setLocalImageUris] = useState<string[]>([])
   const [wantedCategory, setWantedCategory] = useState<string>(category)
   const [wantedSize, setWantedSize] = useState<string>('')
 
@@ -90,7 +92,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
 
      if(!result.canceled){
       const newImageUriS = result.assets.map((asset)=> asset.uri);
-      setImageUrls((prev)=> [...prev, ...newImageUriS].slice(0,4));
+      setLocalImageUris((prev)=> [...prev, ...newImageUriS].slice(0,4));
      }
   }
 
@@ -101,9 +103,10 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
  
   const productUploadFunction = async ()=>{
     try{
+      await uploadService.uploadImages(localImageUris, 'product')
       const response = await productService.CreateProduct({
         category: category,
-        photo_urls: imageUrls,
+        photo_urls: localImageUris,
         title: title,
         estimated_size: size
       })
@@ -194,7 +197,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
                 {/* Image selector */}
                 <View style={styles.ImageSelectorContainer}>
                  <UploadIcon onPress={pickImage}  /> 
-                 {imageUrls.map((uri, index)=>(
+                 {localImageUris.map((uri, index)=>(
                   <View key={index} style={styles.imageSelector}>
                    <Image source={{uri}} style={styles.image} />
 

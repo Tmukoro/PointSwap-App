@@ -4,11 +4,10 @@ import AppleIcon from "@/components/SvgIcons/appleIcon";
 import FacebookIcon from "@/components/SvgIcons/facebookIcon";
 import GoogleIcon from "@/components/SvgIcons/googleIcon";
 import RectangleIcon from "@/components/rectangle";
-import { RegistrationResponse } from "@/types/auth";
+import authService from "@/services/authService";
 
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
 import { useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
 import React, { useState } from "react";
@@ -16,8 +15,8 @@ import { Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from "re
 
 
 export default function RegistrationScreen (){
+  const router = useRouter();
 
- const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/register";
 
 
   const [email, setEmail] = useState('')
@@ -26,21 +25,18 @@ export default function RegistrationScreen (){
 
 
    const RegistrationFunction = async () => {
-
-     let RegReq = {
-       email : email,
-       password: password
-     };
-    
-    
+       
      try {
-       const response = await axios.post<RegistrationResponse>(apiUrl, RegReq, {
-         headers : {"Content-Type": "application/json"}
-       });
 
-       const token = response.data.data.token
+      const response = await authService.Registration({
+        email: email,
+        password: password
+      })
 
-       const userEmail = response.data.data.user.email
+
+       const token = response.token
+
+       const userEmail = response.user.email
 
        await SecureStore.setItemAsync("token", token)
        await AsyncStorage.setItem("userEmail", userEmail)
@@ -60,7 +56,6 @@ export default function RegistrationScreen (){
 
 
 
-    const router = useRouter();
 
 
     return(

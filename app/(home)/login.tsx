@@ -103,7 +103,7 @@ export default function LoginScreen(){
            <Text style={styles.InputText2}>Password</Text>
            <LockIcon style={styles.lockicon} />
            <TextInput placeholder="•••••••••••••" secureTextEntry = {true} style={{fontWeight: 'bold', width: '80%'}}
-            value={password} onChangeText={setPassword} 
+            value={password} onChangeText={setPassword}
            />
            </View>
 

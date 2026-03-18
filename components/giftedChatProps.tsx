@@ -1,7 +1,7 @@
 import { SendHorizontal, X } from '@tamagui/lucide-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Modal, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Bubble, Composer, Day } from 'react-native-gifted-chat';
 import CameraIcon from './SvgIcons/cameraIcon';
 import MicIcon from './SvgIcons/micIcon';
@@ -23,7 +23,8 @@ export default function ChatBubble(props: any) {
         wrapperStyle={{
           right: {
             backgroundColor: '#6734F2',
-            marginRight: 13
+            marginRight: 13,
+            opacity: currentMessage.pending ? 0.6 : 1,
           },
           left: {
             backgroundColor: '#EBEBEB',
@@ -190,11 +191,7 @@ export function ChatInputToolbar({onSend}: props) {
               onPress={handleSend}
               disabled={isUploading}
             >
-              {isUploading ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <SendHorizontal color={'white'} size={'$1'} />
-              )}
+            <SendHorizontal color={'white'} size={'$1'} />
             </TouchableOpacity>
           )}
         </View>
@@ -236,29 +233,7 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: Platform.OS === 'ios' ? 25 : 25,
   },
-  replyContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    borderLeftWidth: 3,
-    borderLeftColor: '#757575',
-    padding: 8,
-    marginBottom: 10,
-    borderRadius: 8,
-  },
-  replyContent: {
-    flex: 1,
-  },
-  replyLabel: {
-    fontSize: 12,
-    color: '#757575',
-    fontWeight: '600',
-    marginBottom: 2,
-  },
-  replyText: {
-    fontSize: 14,
-    color: '#333',
-  },
+
   cancelButton: {
     padding: 4,
   },
@@ -327,8 +302,12 @@ const styles = StyleSheet.create({
   messageImage: {
     width: 200,
     height: 200,
-    borderRadius: 12,
-    marginTop: 5,
+    borderRadius: 17,
+    borderBottomRightRadius: 3,
+    borderBottomLeftRadius: 3,
+    borderTopRightRadius: 5,
+    borderTopLeftRadius: 7,
+    marginBottom: 3
   },
   modalContainer: {
     flex: 1,
@@ -345,7 +324,7 @@ const styles = StyleSheet.create({
   },
 
   fullImage: {
-    width: 100,
-    height: 100
+    width: '100%',
+    height: '100%'
   },
 });

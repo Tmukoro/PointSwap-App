@@ -1,6 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Animated,
   Dimensions,
   Image,
@@ -25,7 +26,6 @@ import Dropdown from './dropdown';
 
 import productService from '@/services/productService';
 import uploadService from '@/services/uploadService';
-import CategoryBoxV2 from './categoryBoxV2';
 interface UploadModalProps {
   visible: boolean;
   onClose: () => void;
@@ -41,11 +41,12 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
   const [size, setSize] = useState('')
   const sizeOptions = ['S', 'M', 'L', 'XL'];
   const [category, setCategory] = useState<string>('');
+  const catOptions = ['Cap', 'Shorts', 'Shoes', 'Shirts'];
   const [title, setTitle] = useState<string>('');
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [localImageUris, setLocalImageUris] = useState<string[]>([])
   const [wantedCategory, setWantedCategory] = useState<string>(category)
   const [wantedSize, setWantedSize] = useState<string>('')
+  const [uploading, setUploading] = useState(false)
 
   const productID = useRef<string>('')
   
@@ -74,7 +75,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
     if (!visible) {
         setTitle('')
         setSize('')
-        setImageUrls([])
+        setLocalImageUris([])
         setWantedSize('')
     }
 }, [visible])
@@ -85,14 +86,22 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
       mediaTypes: 'images',
       allowsEditing: false,
       aspect: [1, 1],
-      quality: 1,
+      quality: 0.4,
       allowsMultipleSelection: true,
       selectionLimit: 4
      });
 
      if(!result.canceled){
       const newImageUriS = result.assets.map((asset)=> asset.uri);
-      setLocalImageUris((prev)=> [...prev, ...newImageUriS].slice(0,4));
+      try{
+        setUploading(true)
+        const productsUris = await uploadService.uploadImages(newImageUriS, 'product')
+        setLocalImageUris((prev)=> [...prev, ...productsUris].slice(0,4));
+      }catch(error){
+        console.log(error)
+      }finally{
+        setUploading(false)
+      }
      }
   }
 
@@ -103,7 +112,6 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
  
   const productUploadFunction = async ()=>{
     try{
-      await uploadService.uploadImages(localImageUris, 'product')
       const response = await productService.CreateProduct({
         category: category,
         photo_urls: localImageUris,
@@ -147,7 +155,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
       onRequestClose={onClose}
       onDismiss={()=>{
         setCategory('')
-        setImageUrls([])
+        setLocalImageUris([])
         setTitle('')
         setSize('')
       }}
@@ -250,8 +258,15 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
                 </View>
 
 
-           <TouchableOpacity style={styles.InputButton} onPress={productUploadFunction}>
+           <TouchableOpacity style={[styles.InputButton, uploading && styles.buttonDisabled]}
+            onPress={productUploadFunction}
+            disabled={uploading}
+            >
+          {uploading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (              
             <Text style={{textAlign: 'center', color: 'white'}}>Post now</Text>
+          )}
            </TouchableOpacity>                
 
 
@@ -277,10 +292,12 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
          <View>
          <Text>Please provide what size you need</Text>
          </View>
-        <CategoryBoxV2
+        <Dropdown
          label='Category'
          placeholder={category}
+         options={catOptions}
          onSelect={setWantedCategory}
+         selectedValue={wantedCategory}
          />
 
         <Dropdown
@@ -462,7 +479,11 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginTop: 16,
     alignItems: 'center',
-  }
+  },
+
+  buttonDisabled: {
+    opacity: 0.6,
+  },
 
 });
 

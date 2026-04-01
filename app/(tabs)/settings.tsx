@@ -59,8 +59,11 @@ export default function SettingsScreen (){
     }, []);
 
     if(loading || !token){
-        return <ActivityIndicator size={'large'}/>
-    }
+        return (
+            <View style={styles.centerContainer}>
+              <ActivityIndicator size="large" color="#6734F2" />
+            </View>
+          );    }
 
     const logout = async()=>{
 
@@ -177,6 +180,13 @@ const styles = StyleSheet.create({
        height: '100%',
        paddingVertical: 15
     },
+
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+      },
 
     profileBox : {
         width: '100%',

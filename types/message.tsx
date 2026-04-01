@@ -6,6 +6,8 @@ export interface Message {
   sender_avatar: string | null;
   message_text: string;
   image_url?: string | null; 
+  audio_url?: string | null;
+  audio_duration?: number | null; 
   is_read: boolean;
   created_at: string;
   deleted_at: string | null;
@@ -29,4 +31,6 @@ export interface SendMessageRequest {
   recipient_id: string;
   message_text: string;
   image_url?: string;
+  audio_url?: string;  
+  audio_duration?: number; 
 }

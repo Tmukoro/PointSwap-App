@@ -1,20 +1,39 @@
 import { SendHorizontal, X } from '@tamagui/lucide-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as SecureStore from 'expo-secure-store';
 import React, { useState } from 'react';
 import { Alert, Image, Modal, Platform, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Bubble, Composer, Day } from 'react-native-gifted-chat';
 import CameraIcon from './SvgIcons/cameraIcon';
 import MicIcon from './SvgIcons/micIcon';
+import AudioRecorder from './audioRecorder';
+import VoiceNoteBubble from './voiceNoteBubble';
 
 
 
 interface props {
-  onSend: (text: string, imageUri?:string) => void;
+  onSend: (text: string, imageUri?:string, audioUri?: string, audioDuration?: number) => void;
 }
 
 export default function ChatBubble(props: any) {
   const { currentMessage } = props;
   const [showImageModal, setShowImageModal] = useState(false);
+  const userId = SecureStore.getItemAsync("user_id")
+
+   // If it's a voice note, render custom bubble
+   if (currentMessage.audio) {
+    const isSender = currentMessage.user._id === userId;
+    
+    return (
+      <View style={{ marginHorizontal: 10, marginVertical: 5 }}>
+        <VoiceNoteBubble
+          audioUrl={currentMessage.audio}
+          isPending={currentMessage.pending}
+          isSender={isSender}
+        />
+      </View>
+    );
+  }
 
   return (
     <View>
@@ -149,10 +168,27 @@ export function ChatInputToolbar({onSend}: props) {
     const [text, setText] = useState('');
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const [isUploading, setIsUploading] = useState(false);
+    const [isRecording, setIsRecording] = useState(false);
     
   const handleTextChange = (newText: string) => {
     setText(newText);
   };
+
+  const handleAudioSend = (audioUri: string, duration: number) => {
+    onSend('', undefined, audioUri, duration);
+    setIsRecording(false);
+  };
+
+    // Show audio recorder when recording
+    if (isRecording) {
+      return (
+        <AudioRecorder
+          onSend={handleAudioSend}
+          onCancel={() => setIsRecording(false)}
+        />
+      );
+    }
+  
 
 
 
@@ -208,7 +244,10 @@ export function ChatInputToolbar({onSend}: props) {
           </TouchableOpacity>
           
 
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity style={styles.iconButton}
+            onPress={() => setIsRecording(true)}
+            disabled={isUploading}
+          >
             <MicIcon />
           </TouchableOpacity>
         </View>

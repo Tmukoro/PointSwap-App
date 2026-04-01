@@ -26,6 +26,7 @@ export default function ProfileSetUpScreen (){
     const [localImageUri, setLocalImageUri] = useState<string>('')
     const [email, setEmail] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null)
+    const [uploading, setUploading] = useState(false)
 
     useEffect(()=>{
 
@@ -45,6 +46,33 @@ export default function ProfileSetUpScreen (){
       return <ActivityIndicator size={'large'}></ActivityIndicator>
     }
 
+    const pickImage = async () => {
+      // No permissions request is necessary for launching the image library
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+  
+      if (!result.canceled) {
+        const imageUri = (result.assets[0].uri);
+        try{
+          setUploading(true)
+          const uploadedUrl = await uploadService.uploadImage(imageUri, 'profile');
+          setLocalImageUri(uploadedUrl); 
+        }catch(error){
+          console.error(error)
+        }finally{
+           setUploading(false)
+        }
+      }
+    };
+
+
+
+
+
     const ProfileSave = async () => {
   
       if (!localImageUri) {
@@ -53,18 +81,12 @@ export default function ProfileSetUpScreen (){
       }
 
       try{
-
-        await uploadService.uploadImage(localImageUri, "profile")
-
         await authService.profileSetUp({
           first_name: first_name,
           last_name: last_name,
           avatar_url: localImageUri
         })
-
-
         route.push("/location")
-
       }catch(error){
         console.log(error)
       }
@@ -72,26 +94,6 @@ export default function ProfileSetUpScreen (){
     }
 
     
-
-
-
-    const pickImage = async () => {
-        // No permissions request is necessary for launching the image library
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: 'images',
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 1,
-        });
-    
-        console.log(result);
-    
-        if (!result.canceled) {
-          const imageUri = (result.assets[0].uri);
-          setLocalImageUri(imageUri)
-        }
-      };
-
 
 
     return(
@@ -145,9 +147,18 @@ export default function ProfileSetUpScreen (){
 
 
 
-        <TouchableOpacity style={styles.accessbutton} onPress={ProfileSave}>
-          <Text style={{color: 'white', fontSize: 14, fontWeight: '600'}}>Continue</Text>
-          <ChevronRight color={'#fff'} size={'$1'} />
+        <TouchableOpacity style={styles.accessbutton}
+         onPress={ProfileSave}
+         disabled={uploading}
+         >
+          {uploading ? (
+            <ActivityIndicator color={'#fff'} />
+          ):(
+            <>
+            <Text style={{color: 'white', fontSize: 14, fontWeight: '600'}}>Continue</Text>
+            <ChevronRight color={'#fff'} size={'$1'} />
+            </>
+          )}
         </TouchableOpacity> 
 
 

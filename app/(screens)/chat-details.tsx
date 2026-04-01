@@ -94,7 +94,6 @@ export default function ChatScreen(){
   
     // Handle new messages from Ably
     const handleNewMessage = (messageData: any) => {
-      
       if (messageData.sender_id === currentUserId) {
         console.log('Skipping own message from Ably');
         return;
@@ -108,8 +107,8 @@ export default function ChatScreen(){
           _id: messageData.sender_id,
           name: recipientName,
         },
-        // Add image if present
         ...(messageData.image_url && { image: messageData.image_url }),
+        ...(messageData.audio_url && { audio: messageData.audio_url }),
       };
     
       setMessages((previousMessages) => {
@@ -126,34 +125,33 @@ export default function ChatScreen(){
     const formatMessagesForGiftedChat = (backendMessages: any[]): IMessage[] => {
       return backendMessages.map((msg) => ({
         _id: msg.id,
-        text: msg.message_text || '', // Empty text if only image
+        text: msg.message_text || '',
         createdAt: new Date(msg.created_at),
         user: {
           _id: msg.sender_id,
           name: msg.sender_name,
           avatar: msg.sender_avatar,
         },
-        // Add image if present
         ...(msg.image_url && { image: msg.image_url }),
+        ...(msg.audio_url && { audio: msg.audio_url }),
       }));
     };
   
     // Send message handler
 
-    const onSend = useCallback(async (text: string, imageUri?: string) => {
-      console.log('onSend called with:', { text, imageUri });
-      
+    const onSend = useCallback(async (text: string, imageUri?: string, audioUri?: string, audioDuration?: number) => {
       const tempId = `temp-${Date.now()}`;
       
       const newMessage: IMessage = {
         _id: tempId,
-        text: text || '',
+        text: text || (audioUri ? '🎤 Voice message' : ''),
         createdAt: new Date(),
         user: {
           _id: currentUserId,
         },
         pending: true,
         ...(imageUri && { image: imageUri }),
+        ...(audioUri && { audio: audioUri }),
       };
     
       setMessages((previousMessages) =>
@@ -162,28 +160,39 @@ export default function ChatScreen(){
     
       try {
         let imageUrl: string | undefined;
+        let audioUrl: string | undefined;
     
+        // Upload image if present
         if (imageUri) {
-          console.log('Starting image upload...');
           imageUrl = await messageService.uploadImage(imageUri);
-          console.log('Image uploaded successfully:', imageUrl);
+          console.log('Image uploaded:', imageUrl);
         }
     
-        console.log('Sending message to backend:', { text, imageUrl });
-        await messageService.sendMessage(conversationId, text, imageUrl);
-        console.log('Message sent successfully');
+        // Upload audio if present
+        if (audioUri) {
+          audioUrl = await messageService.uploadAudio(audioUri);
+          console.log('Audio uploaded:', audioUrl);
+        }
     
+        // Send to backend
+        await messageService.sendMessage(conversationId, text, imageUrl, audioUrl, audioDuration);
+    
+        // Update message to remove pending state
         setMessages((previousMessages) =>
           previousMessages.map(msg => 
             msg._id === tempId 
-              ? { ...msg, pending: false, ...(imageUrl && { image: imageUrl }) }
+              ? { 
+                  ...msg, 
+                  pending: false, 
+                  ...(imageUrl && { image: imageUrl }),
+                  ...(audioUrl && { audio: audioUrl }),
+                }
               : msg
           )
         );
       } catch (error: any) {
-        console.error('Error details:', error);
-        console.error('Error response:', error.response?.data);
-        Alert.alert('Error', error.response?.data?.message || 'Failed to send message');
+        console.error('Error:', error.response?.data);
+        Alert.alert('Error', 'Failed to send message');
         
         setMessages((previousMessages) =>
           previousMessages.filter(msg => msg._id !== tempId)
@@ -195,7 +204,11 @@ export default function ChatScreen(){
   
 
     if(isLoading){
-      return <ActivityIndicator size={'large'} />
+      return (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#6734F2" />
+        </View>
+      );
     }
   
     return (
@@ -278,6 +291,13 @@ const styles = StyleSheet.create({
     headerContainer: {
       height: 110,
       backgroundColor: '#6734F2',
+    },
+
+    centerContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#fff',
     },
 
     profileContainer: {

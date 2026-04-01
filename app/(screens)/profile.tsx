@@ -4,6 +4,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
+import uploadService from "@/services/uploadService";
 import { ProfileResponse } from "@/types/auth";
 import { GetUserDetails } from "@/types/profile";
 import { ChevronRight } from "@tamagui/lucide-icons";
@@ -17,8 +18,9 @@ export default function ProfileScreen(){
     const [lastName, setLastName] = useState<string>('')
     const [token, setToken] = useState<string | null>(null)
     const [email, setEmail] = useState<string>('')
-    const [avatarUrl, setAvatarUrl] = useState<string | null>('')
+    const [localImageUri, setLocalImageUri] = useState<string>('')
     const [loading, setLoading] = useState(true)
+    const [uploading, setUploading] = useState(false)
 
 
     const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
@@ -46,7 +48,7 @@ export default function ProfileScreen(){
 
             setFirstName(userData.first_name)
             setLastName(userData.last_name)
-            setAvatarUrl(userData.avatar_url)
+            setLocalImageUri(userData.avatar_url)
             setEmail(userData.email)
     
         }catch(error){
@@ -65,21 +67,28 @@ export default function ProfileScreen(){
     }
 
     const pickImage = async () => {
-        // No permissions request is necessary for launching the image library
-        let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: 'images',
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 1,
-        });
-    
-        console.log(result);
-    
-        if (!result.canceled) {
-          const imageUri = (result.assets[0].uri);
-          setAvatarUrl(imageUri)
+      // No permissions request is necessary for launching the image library
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: 'images',
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+  
+      if (!result.canceled) {
+        const imgUri = result.assets[0].uri
+        try{
+          setUploading(true)
+          const UploadUrl =  await uploadService.uploadImage(imgUri, 'profile');
+          setLocalImageUri(UploadUrl)
+        }catch(error){
+          console.log(error)
+        }finally{
+          setUploading(false)
+
         }
-      };
+      }
+    };
 
       const ProfileSave = async () => {
 
@@ -93,7 +102,7 @@ export default function ProfileScreen(){
         let profReq = {
           first_name: firstName,
           last_name: lastName,
-          avatar_url: avatarUrl
+          avatar_url: localImageUri
         };
   
         try{
@@ -121,8 +130,8 @@ export default function ProfileScreen(){
 
         <View style={styles.imagecontainer}>
           <TouchableOpacity onPress={pickImage} style={styles.imageCircle}>           
-           {avatarUrl ? (
-        <Image source={{uri: avatarUrl}} style={styles.image} />
+           {localImageUri ? (
+        <Image source={{uri: localImageUri}} style={styles.image} />
            ): (
             <Text>No Image?</Text>
            )}
@@ -167,9 +176,19 @@ export default function ProfileScreen(){
 
 
 
-        <TouchableOpacity style={styles.accessbutton} onPress={ProfileSave}>
-          <Text style={{color: 'white', fontSize: 14, fontWeight: '600'}}>Save</Text>
-          <ChevronRight color={'#fff'} size={'$1'} />
+           <TouchableOpacity 
+          style={[styles.accessbutton, uploading && styles.buttonDisabled]} 
+          onPress={ProfileSave}
+          disabled={uploading}
+        >
+          {uploading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <Text style={{color: 'white', fontSize: 14, fontWeight: '600'}}>Save</Text>
+              <ChevronRight color={'#fff'} size={'$1'} />
+            </>
+          )}
         </TouchableOpacity> 
 
 
@@ -293,8 +312,10 @@ const styles = StyleSheet.create({
         borderRadius: 2,
         backgroundColor: '#FFFAEB',
         alignSelf: 'center'
-      }
-  
+      },
 
+      buttonDisabled: {
+        opacity: 0.6,
+      },
 
 })

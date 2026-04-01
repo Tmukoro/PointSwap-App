@@ -5,58 +5,100 @@ import * as SecureStore from 'expo-secure-store';
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, AppState, AppStateStatus, View } from "react-native";
 
-export default function RootStack() {
+// const API_BASE_URL = 'http://192.168.0.134:8080/pointSwapApi/v1';
 
+export default function RootStack() {
   const route = useRouter();
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const appState = useRef(AppState.currentState);
 
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const token = await SecureStore.getItemAsync("token")
+        const token = await SecureStore.getItemAsync("token");
 
         if (token) {
-          route.replace('/(tabs)/home')
+          setIsAuthenticated(true);
+          userStatus.setAuthToken(token);
+          await userStatus.updateStatus(true);
+          
+          // Register for push notifications
+  // const pushToken = await notificationService.registerForPushNotifications();
+  //         if (pushToken) {
+  //           try {
+  //             await axios.post(
+  //               `${API_BASE_URL}/push-token`,
+  //               { 
+  //                 token: pushToken, 
+  //                 device_type: Platform.OS 
+  //               },
+  //               { headers: { Authorization: `Bearer ${token}` } }
+  //             );
+  //             console.log('Push token registered with backend');
+  //           } catch (error) {
+  //             console.error('Failed to register push token:', error);
+  //           }
+  //         }
+          
+          route.replace('/(tabs)/home');
         } else {
-          route.replace('/(home)')
+          route.replace('/(home)');
         } 
 
       } catch (error) {
-        console.error(error)
-        route.replace('/(home)')
+        console.error(error);
+        route.replace('/(home)');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     };
 
     checkAuth();
-  }, [route])
+  }, [route]);
 
   // Online status tracking
   useEffect(() => {
-    // Set user online when app starts
+    if (!isAuthenticated) return;
+
     setUserOnline();
 
-    // Listen for app state changes
     const subscription = AppState.addEventListener('change', handleAppStateChange);
 
     return () => {
       subscription.remove();
-      // Set offline when app unmounts
       setUserOffline();
     };
-  }, []);
+  }, [isAuthenticated]);
+
+  // Handle notification taps
+  // useEffect(() => {
+  //   const subscription = notificationService.addNotificationResponseReceivedListener(response => {
+  //     const data = response.notification.request.content.data;
+      
+  //     if (data.type === 'new_message' && data.conversation_id) {
+  //       // Navigate to chat screen
+  //       route.push({
+  //         pathname: '/(screens)/chat-details',
+  //         params: { 
+  //           conversationId: String(data.conversation_id)
+  //         }
+  //       });
+  //     }
+  //   });
+
+  //   return () => {
+  //     subscription.remove();
+  //   };
+  // }, []);
 
   const handleAppStateChange = (nextAppState: AppStateStatus) => {
     if (
       appState.current.match(/inactive|background/) &&
       nextAppState === 'active'
     ) {
-      // App came to foreground - set online
       setUserOnline();
     } else if (nextAppState.match(/inactive|background/)) {
-      // App went to background - set offline
       setUserOffline();
     }
 
@@ -66,22 +108,21 @@ export default function RootStack() {
   const setUserOnline = async () => {
     const token = await SecureStore.getItemAsync('token');
     if (token) {
-      userStatus.setAuthToken(token)
+      userStatus.setAuthToken(token);
       await userStatus.updateStatus(true);
-      console.log('User set to ONLINE'); // Debug log
+      console.log('User set to ONLINE');
     }
   };
 
   const setUserOffline = async () => {
     const token = await SecureStore.getItemAsync('token');
     if (token) {
-      userStatus.setAuthToken(token)
+      userStatus.setAuthToken(token);
       await userStatus.updateStatus(false);
-      console.log('User set to OFFLINE'); // Debug log
+      console.log('User set to OFFLINE');
     }
   };
 
-  // NOW the loading check
   if (loading) {
     return (
       <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -90,18 +131,15 @@ export default function RootStack() {
     ); 
   }
 
-
-
   return(
-       <Stack
-       screenOptions={{
+    <Stack
+      screenOptions={{
         headerShown: false
-       }}
-       >
+      }}
+    >
       <Stack.Screen name="(home)" />
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(screens)" />
     </Stack>
-  )
-
+  );
 }

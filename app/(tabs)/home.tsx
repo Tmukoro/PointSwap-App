@@ -86,7 +86,11 @@ const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
 
 
     if(loading || !token){
-        return <ActivityIndicator size={'large'}></ActivityIndicator>
+        return (
+            <View style={styles.centerContainer}>
+              <ActivityIndicator size="large" color="#6734F2" />
+            </View>
+          );
     }
     
     
@@ -198,6 +202,13 @@ const styles = StyleSheet.create({
        alignItems: 'center',
        backgroundColor: '#fff'
     },
+
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+      },
 
     navbar : {
         backgroundColor: '#6734F2',

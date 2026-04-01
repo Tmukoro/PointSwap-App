@@ -3,6 +3,7 @@ import CallIcon from "@/components/SvgIcons/callIcon";
 import ChatIcon from "@/components/SvgIcons/chatIcon";
 import ExportIcon from "@/components/SvgIcons/exportIcon";
 import messageService from "@/services/messageService";
+import myAdvert from "@/services/myAdvert";
 import userStatus from "@/services/userStatus";
 import { ProductByIdResponse } from "@/types/products";
 import axios from "axios";
@@ -27,7 +28,8 @@ export default function ProductViewScreen(){
     const [sellerID, setSellerId] = useState<string>('')
     const [currentUserID, setCurrentUserID] = useState<string>('')
     const [isSellerOnline, setIsSellerOnline] = useState<boolean>(false);
-    const [sellerLastSeen, setSellerLastSeen] = useState<Date | null>(null);  
+    const [sellerLastSeen, setSellerLastSeen] = useState<string>('Offline');  
+    const [pwSize, setPWSize] = useState<string>('');
 
 
     useEffect(()=>{
@@ -44,6 +46,7 @@ export default function ProductViewScreen(){
           try{
             setLoading(true)
             const respone = await axios.get<ProductByIdResponse>(apiUrl)
+            const wantData = await myAdvert.getUserProductWant(product_id)
             
             setImageUrls(respone.data.data.photos.map(photo => photo.image_url))
             setTitle(respone.data.data.title)
@@ -53,12 +56,13 @@ export default function ProductViewScreen(){
             setLastName(respone.data.data.sellers.last_name)
             setAvatarUrl(respone.data.data.sellers.avatar_url)
             setSellerId(respone.data.data.sellers.user_id)
+            setPWSize(wantData.wanted_size)
 
             const status = await userStatus.getUserStatus(
                 respone.data.data.sellers.user_id
             )
             setIsSellerOnline(status.is_online)
-            setSellerLastSeen(status.last_seen ? new Date(status.last_seen) : null);
+            setSellerLastSeen('Offline');
 
           }catch(error){
             console.error("Failed to get product: ", error)
@@ -70,7 +74,7 @@ export default function ProductViewScreen(){
     const loadSellerStatus = async () => {
         const status = await userStatus.getUserStatus(sellerID);
         setIsSellerOnline(status.is_online);
-        setSellerLastSeen(status.last_seen ? new Date(status.last_seen) : null);
+        setSellerLastSeen('offline');
       };
 
     useEffect(()=>{
@@ -227,6 +231,13 @@ export default function ProductViewScreen(){
                     </View>
                 </View>
 
+                {/* USER WANT */}
+
+                <View style={styles.Uwant}>
+                    <Text>{firstName} wants size:</Text>
+                    <Text style={{alignSelf: 'flex-end'}}>{pwSize}</Text>
+                </View>
+
             </View>
 
             {/* NOTICE MESSAGE */}
@@ -344,7 +355,9 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 100,
         marginTop: 4,
-        paddingVertical: 10
+        paddingVertical: 10,
+        flexDirection: 'row',
+        gap: 8
     },
 
     profileContainer: {
@@ -359,6 +372,10 @@ const styles = StyleSheet.create({
        paddingHorizontal: 10,
        borderRadius: 32,
        marginVertical: 5
+    },
+
+    Uwant : {
+
     },
 
     messageCont: {

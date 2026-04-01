@@ -1,4 +1,4 @@
-import { FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -74,7 +74,7 @@ export default function ChatScreen (){
       if (loading) {
         return (
           <View style={styles.centerContainer}>
-            <Text>Loading conversations...</Text>
+            <ActivityIndicator size="large" color="#6734F2" />
           </View>
         );
       }

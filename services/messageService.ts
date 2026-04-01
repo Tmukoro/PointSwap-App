@@ -56,10 +56,12 @@ class MessageService {
   }
 
   // Send message to existing conversation
-  async sendMessage(conversationId: string, messageText: string, imageUrl?: string): Promise<Message> {
+  async sendMessage(conversationId: string, messageText: string, imageUrl?: string, audioUrl?: string, audioDuration?: number): Promise<Message> {
     const payload = {
       message_text: messageText,
       image_url: imageUrl,
+      audio_url: audioUrl,
+      audio_duration: audioDuration,
     };
         
     const response = await this.axiosInstance.post(
@@ -115,6 +117,38 @@ class MessageService {
   
     return imageUrl;
   }
+  
+  // Add audio upload method
+  async uploadAudio(audioUri: string): Promise<string> {
+    const formData = new FormData();
+    
+    const filename = audioUri.split('/').pop() || 'audio.m4a';
+    
+    formData.append('audio', {
+      uri: audioUri,
+      name: filename,
+      type: 'audio/m4a', // iOS default
+    } as any);
+  
+    const response = await this.axiosInstance.post('/upload/image?type=audio', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  
+    // Handle both singular and plural responses
+    const audioUrl = response.data.data.image_url || response.data.data.image_urls?.[0];
+    
+    if (!audioUrl) {
+      throw new Error('No audio URL returned from server');
+    }
+  
+    return audioUrl;
+  }
+
+
+
+  
 
 
 

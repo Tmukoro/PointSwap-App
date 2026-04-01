@@ -73,7 +73,7 @@ export default function AdvertViewScreen(){
     const updateProduct = async()=>{
         try{
             await myAdvert.updateProductWant({
-                wantedCategory: wantedCategory,
+                wantedCategory: category,
                 wantedSize: wantedSize
             }, product_id)
 

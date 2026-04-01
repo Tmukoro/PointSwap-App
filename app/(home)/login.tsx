@@ -28,8 +28,10 @@ export default function LoginScreen(){
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string>('')
 
   const LoginFunction = async () => {
+    setError('')
 
 
 
@@ -60,8 +62,12 @@ export default function LoginScreen(){
       router.push('/home')
 
 
-    } catch(error){
-      console.log(error)
+    } catch(error: any){
+      if (error.response?.status === 401 || 400) {
+        setError('Invalid email or password');
+      } else {
+        setError('Something went wrong. Try again.');
+      }
     }
 
   }
@@ -106,6 +112,12 @@ export default function LoginScreen(){
             value={password} onChangeText={setPassword}
            />
            </View>
+
+           {error ? (
+          <Text style={{ color: 'red', marginTop: 8, fontSize: 13 }}>
+           {error}
+          </Text>
+           ) : null}           
 
            <View style = {styles.RPbox}>
             <CheckboxWithLabel label="Remember me" />

@@ -16,7 +16,8 @@ export default function TabsLayout (){
        <>
         <Tabs screenOptions={{
             headerShown: false,
-            tabBarActiveTintColor: '#292929',
+            tabBarActiveTintColor: '#6734F2',
+            tabBarInactiveTintColor: '#757575',
             tabBarStyle : {
               height: 85,
               paddingTop: 10,
@@ -27,13 +28,13 @@ export default function TabsLayout (){
             <Tabs.Screen name="home"
               options={{
                 title : "Home",
-                tabBarIcon : ()=> <HomeIcon   />
+                tabBarIcon : ({color})=> <HomeIcon color={color}   />
               }}
             />
             <Tabs.Screen name="chat"
                options={{
                 title : 'Chats',
-                tabBarIcon: ()=> <ChatIcon />,
+                tabBarIcon: ({color})=> <ChatIcon color={color} />,
                 headerShown: true,
                 headerTitleStyle: {fontSize: 24, fontWeight: 600, top: 15},
                 headerStyle: {height: 110}
@@ -57,14 +58,14 @@ export default function TabsLayout (){
             <Tabs.Screen name="notifications"
               options={{
                 title: 'Notifications',
-                tabBarIcon: ()=> <NotificationIcon />,
+                tabBarIcon: ({color})=> <NotificationIcon color={color} />,
               }}
             />
 
             <Tabs.Screen name="settings"
               options={{
                 title: 'Settings',
-                tabBarIcon: ()=> <SettingsIcon />,
+                tabBarIcon: ({color})=> <SettingsIcon color={color} />,
                 headerShown: true,
                 headerStyle: {height: 110},
                 headerTitleStyle: {fontSize: 24, top: 15}

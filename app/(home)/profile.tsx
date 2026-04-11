@@ -8,7 +8,7 @@ import uploadService from '@/services/uploadService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight } from "@tamagui/lucide-icons";
 import * as SecureStore from 'expo-secure-store';
-import { Alert } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 
 
@@ -24,6 +24,7 @@ export default function ProfileSetUpScreen (){
     const [first_name, setFirstName] = useState<string>('');
     const [last_name, setLastName] = useState<string>('');
     const [localImageUri, setLocalImageUri] = useState<string>('')
+    const [avatar, setAvatarUrl] = useState<string>('')
     const [email, setEmail] = useState<string | null>(null);
     const [token, setToken] = useState<string | null>(null)
     const [uploading, setUploading] = useState(false)
@@ -61,6 +62,7 @@ export default function ProfileSetUpScreen (){
           setUploading(true)
           const uploadedUrl = await uploadService.uploadImage(imageUri, 'profile');
           setLocalImageUri(uploadedUrl); 
+          setAvatarUrl(uploadedUrl)
         }catch(error){
           console.error(error)
         }finally{
@@ -76,7 +78,10 @@ export default function ProfileSetUpScreen (){
     const ProfileSave = async () => {
   
       if (!localImageUri) {
-        Alert.alert('Error', 'Please add a profile photo');
+        Toast.show({
+          type: 'error',
+          text1: 'Please add a profile photo!'
+        })
         return;
       }
 
@@ -86,9 +91,33 @@ export default function ProfileSetUpScreen (){
           last_name: last_name,
           avatar_url: localImageUri
         })
+        Toast.show({
+          type: 'success',
+          text1: 'Profile Successfully Created'
+        })
         route.push("/location")
-      }catch(error){
-        console.log(error)
+      }catch(error: any){
+        if(!error.response){
+          Toast.show({
+            type: 'error',
+            text1: 'Network Error',
+            text2: 'Please Check Connection'
+          })
+        }
+        switch(error.response?.status){
+          case 400:
+            Toast.show({
+              type: 'error',
+              text1: 'Invalid Input',
+              text2: 'Please fill in the required details!'
+            })
+            break;
+          default:
+            Toast.show({
+              type: 'error',
+              text1: 'Something went wrong'
+            })
+        }
       }
 
     }

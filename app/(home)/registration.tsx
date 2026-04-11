@@ -21,10 +21,12 @@ export default function RegistrationScreen (){
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState<string>('')
 
 
 
    const RegistrationFunction = async () => {
+    setError('')
        
      try {
 
@@ -33,22 +35,36 @@ export default function RegistrationScreen (){
         password: password
       })
 
-
-       const token = response.token
-
-       const userEmail = response.user.email
-
-       await SecureStore.setItemAsync("token", token)
-       await AsyncStorage.setItem("userEmail", userEmail)
+       await SecureStore.setItemAsync("token", response.token)
+       await AsyncStorage.setItem("userEmail", response.user.email)
 
 
        router.push('/profile')
 
-    } catch(error){
+    } catch(error: any){
 
-       console.log(error)
+      if(!error.response){
+        setError('Network Error Check your connection')
+        return
+      }
+
+      switch(error.response?.status){
+        case 400:
+          setError('Please fill in required details');
+          break;
+        case 401:
+          setError('Password length must be greater than 14')
+          break; 
+        case 409:
+          setError('An account with this email already exists');
+          break;  
+        default: 
+          setError('Something went wrong')
+      }
+
+
+
     }
-
 
    }
 
@@ -94,6 +110,10 @@ export default function RegistrationScreen (){
            value={password} onChangeText={setPassword}
            />
            </View>
+
+           {error ? (
+             <Text style={{color: 'red', marginTop: 8, fontSize: 13}}>{error}</Text>
+           ): null}
            
            <TouchableOpacity style={styles.InputButton} onPress={RegistrationFunction}>
             <Text style={{textAlign: 'center', color: 'white'}}>Continue with email</Text>

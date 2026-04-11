@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 export default function NotificationsScreen() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -26,7 +27,11 @@ export default function NotificationsScreen() {
         }
       }
     } catch (error) {
-      console.error('Failed to load notifications:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Error:',
+        text2: 'Failed to load notifications'
+      })
       setNotifications([]); // Set empty array on error
     } finally {
       setLoading(false);
@@ -62,7 +67,10 @@ export default function NotificationsScreen() {
         )
       );
     } catch (error) {
-      console.error('Failed to mark as read:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Something Went wrong'
+      })
     }
   };
 

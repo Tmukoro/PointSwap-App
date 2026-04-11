@@ -19,6 +19,7 @@ export default function ProfileScreen(){
     const [token, setToken] = useState<string | null>(null)
     const [email, setEmail] = useState<string>('')
     const [localImageUri, setLocalImageUri] = useState<string>('')
+    const [avatarUrl, setAvatarUrl] = useState<string>('')
     const [loading, setLoading] = useState(true)
     const [uploading, setUploading] = useState(false)
 
@@ -72,11 +73,12 @@ export default function ProfileScreen(){
         mediaTypes: 'images',
         allowsEditing: true,
         aspect: [1, 1],
-        quality: 1,
+        quality: 0.5,
       });
   
       if (!result.canceled) {
         const imgUri = result.assets[0].uri
+          setAvatarUrl(imgUri)
         try{
           setUploading(true)
           const UploadUrl =  await uploadService.uploadImage(imgUri, 'profile');
@@ -131,7 +133,7 @@ export default function ProfileScreen(){
         <View style={styles.imagecontainer}>
           <TouchableOpacity onPress={pickImage} style={styles.imageCircle}>           
            {localImageUri ? (
-        <Image source={{uri: localImageUri}} style={styles.image} />
+        <Image source={{uri: localImageUri || avatarUrl}} style={styles.image} />
            ): (
             <Text>No Image?</Text>
            )}

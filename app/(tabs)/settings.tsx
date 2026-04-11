@@ -10,6 +10,7 @@ import { useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function SettingsScreen (){
     const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
@@ -47,7 +48,10 @@ export default function SettingsScreen (){
         setAvatarUrl(userData.avatar_url)
 
        }catch(error){
-        console.error("Error fetching data: ", error)
+        Toast.show({
+            type: 'error',
+            text1: 'Something went wrong'
+        })
        }finally{
         setLoading(false)
        }
@@ -63,7 +67,8 @@ export default function SettingsScreen (){
             <View style={styles.centerContainer}>
               <ActivityIndicator size="large" color="#6734F2" />
             </View>
-          );    }
+          );   
+         }
 
     const logout = async()=>{
 

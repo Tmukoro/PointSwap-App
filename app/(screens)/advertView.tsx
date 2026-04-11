@@ -8,6 +8,7 @@ import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function AdvertViewScreen(){
     const route = useRouter()
@@ -39,7 +40,10 @@ export default function AdvertViewScreen(){
             setWantedSize(wantData.wanted_size)
 
           }catch(error){
-            console.error("Failed to get product: ", error)
+            Toast.show({
+                type: 'error',
+                text1: 'Something went wrong'
+            })
           }finally{
             setLoading(false)
           }
@@ -58,9 +62,16 @@ export default function AdvertViewScreen(){
                     onPress: async()=> {
                         try{
                             await myAdvert.DeleteProduct(product_id)
+                            Toast.show({
+                                type: 'success',
+                                text1: 'Product Successfully deleted!'
+                            })
                             route.push('/(screens)/myAdvert')
                         }catch(error){
-                            console.error("Couldnt delete error: ", error)
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Something went wrong'
+                            })
                         }
                     },
                 },
@@ -79,7 +90,10 @@ export default function AdvertViewScreen(){
 
             loadProductData()
         }catch(error){
-            console.error("Coudln't update: ", error)
+            Toast.show({
+                type: 'error',
+                text1: 'Something went wrong'
+            })
         }
     }
 
@@ -89,11 +103,11 @@ export default function AdvertViewScreen(){
 
     
     if(loading){
-        return(
-        <View>
-            <ActivityIndicator size={'large'}/>
-        </View>
-        )
+        return (
+            <View style={styles.centerContainer}>
+              <ActivityIndicator size="large" color="#6734F2" />
+            </View>
+          );   
     }
 
 
@@ -233,6 +247,13 @@ const styles = StyleSheet.create({
         height: 90,
         width: '100%',
     },
+
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+      },
 
     navigationBox : {
         flexDirection: 'row',

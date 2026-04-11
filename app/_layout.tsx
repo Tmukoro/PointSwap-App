@@ -2,6 +2,7 @@
 import tamaguiConfig from "@/tamui.config";
 import { Slot } from "expo-router";
 import { KeyboardProvider } from "react-native-keyboard-controller";
+import Toast from "react-native-toast-message";
 import { PortalProvider, TamaguiProvider } from "tamagui";
 
 
@@ -14,6 +15,7 @@ export default function RootLayout() {
       <PortalProvider>
         <Slot />
     </PortalProvider>
+    <Toast  />
     </TamaguiProvider>
     </KeyboardProvider>
   )

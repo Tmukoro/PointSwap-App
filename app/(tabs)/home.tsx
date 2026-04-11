@@ -9,6 +9,7 @@ import * as SecureStore from 'expo-secure-store';
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Animated, Image, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { TabBar, TabView } from 'react-native-tab-view';
+import Toast from "react-native-toast-message";
 export default function TabHomeScreen (){
 
     const [avatar_url, setAvatarUrl] = useState<string | null>('');
@@ -74,7 +75,10 @@ const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/userProfile";
                 setAvatarUrl(userData.avatar_url)
 
             } catch(error){
-                console.log(error)
+                Toast.show({
+                    type: 'error',
+                    text1: 'Something went wrong'
+                })
             } finally {
                 setLoading(false)
             }

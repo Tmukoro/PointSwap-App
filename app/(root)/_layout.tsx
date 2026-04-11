@@ -4,7 +4,6 @@ import { Stack, useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, AppState, AppStateStatus, View } from "react-native";
-
 // const API_BASE_URL = 'http://192.168.0.134:8080/pointSwapApi/v1';
 
 export default function RootStack() {
@@ -12,6 +11,10 @@ export default function RootStack() {
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const appState = useRef(AppState.currentState);
+
+
+
+
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -131,7 +134,9 @@ export default function RootStack() {
     ); 
   }
 
+
   return(
+    <>
     <Stack
       screenOptions={{
         headerShown: false
@@ -141,5 +146,8 @@ export default function RootStack() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="(screens)" />
     </Stack>
+
+
+    </>
   );
 }

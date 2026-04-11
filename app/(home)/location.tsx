@@ -1,8 +1,11 @@
 import HillIcon from "@/components/SvgIcons/hillIcon";
+import locationService from "@/services/locationService";
 import { ChevronRight } from "@tamagui/lucide-icons";
 
 import { useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 
 
@@ -10,6 +13,77 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 export default function LocationDetectScreen (){
 
   const route = useRouter();
+
+  const [loading, setLoading] = useState<boolean>(false)
+
+  const handleAllowLocation = async () => {
+    setLoading(true);
+
+    try {
+      // Request permission
+      const hasPermission = await locationService.requestPermission();
+
+      if (!hasPermission) {
+        Toast.show({
+          type: 'error',
+          text1: 'Permission Denied',
+          text2: 'We need your location to show you products from people in your camp. Please enable location in settings.'
+        })
+        setLoading(false);
+        return;
+      }
+
+      // Get current location
+      const location = await locationService.getCurrentLocation();
+
+      if (!location) {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Could not get your location. Please try again.'
+        })
+        setLoading(false);
+        return;
+      }
+
+      // Send to backend to determine camp
+      const result = await locationService.sendLocationToBackend(
+        location.latitude,
+        location.longitude
+      );
+
+      // Navigate to confirmation screen with camp details
+      route.push({
+        pathname: '/(home)/located',
+        params: {
+          state: result.location_state,
+          camp: result.camp_name,
+        },
+      });
+    } catch (error: any) {
+      console.error('Location error:', error);
+      
+      if (error.response?.status === 404) {
+        Toast.show({
+          type: 'error',
+          text1: 'No Camp Found',
+          text2: 'We could not find an NYSC camp near your location. Please make sure you are at or near an orientation camp.'
+        })
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Error',
+          text2: 'Failed to set your location. Please try again.'
+        })
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+
+
 
     return(
 
@@ -32,9 +106,16 @@ export default function LocationDetectScreen (){
         </View>
 
 
-        <TouchableOpacity style={styles.accessbutton} onPress={()=> route.navigate('/located')}>
+        <TouchableOpacity style={styles.accessbutton} onPress={handleAllowLocation}>
+          {loading? (
+            <ActivityIndicator color={'#fff'} />
+          ):(
+            <>
           <Text style={{color: 'white', fontSize: 14, fontWeight: '600'}}>Allow location access</Text>
-          <ChevronRight color={'#fff'} size={'$1'}  />
+          <ChevronRight color={'#fff'} size={'$1'}  />            
+            </>
+          )}
+
         </TouchableOpacity>
 
         

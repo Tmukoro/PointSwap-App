@@ -11,6 +11,7 @@ import { ActivityIndicator, Alert, Image, Platform, StyleSheet, Text, TouchableO
 
 import { GiftedChat, IMessage } from "react-native-gifted-chat";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
+import Toast from "react-native-toast-message";
 
 export default function ChatScreen(){
  
@@ -87,7 +88,10 @@ export default function ChatScreen(){
         
         setIsLoading(false);
       } catch (error) {
-        console.error('Error initializing chat:', error);
+        Toast.show({
+          type: 'error',
+          text1: 'Something went wrong (ic)'
+        })
         setIsLoading(false);
       }
     };
@@ -95,7 +99,6 @@ export default function ChatScreen(){
     // Handle new messages from Ably
     const handleNewMessage = (messageData: any) => {
       if (messageData.sender_id === currentUserId) {
-        console.log('Skipping own message from Ably');
         return;
       }
     
@@ -114,7 +117,6 @@ export default function ChatScreen(){
       setMessages((previousMessages) => {
         const exists = previousMessages.some(msg => msg._id === messageData.id);
         if (exists) {
-          console.log('Message already exists, skipping:', messageData.id);
           return previousMessages;
         }
         return GiftedChat.append(previousMessages, [formattedMessage]);
@@ -165,13 +167,11 @@ export default function ChatScreen(){
         // Upload image if present
         if (imageUri) {
           imageUrl = await messageService.uploadImage(imageUri);
-          console.log('Image uploaded:', imageUrl);
         }
     
         // Upload audio if present
         if (audioUri) {
           audioUrl = await messageService.uploadAudio(audioUri);
-          console.log('Audio uploaded:', audioUrl);
         }
     
         // Send to backend

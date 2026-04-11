@@ -10,7 +10,8 @@ import axios from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
 
 export default function ProductViewScreen(){
     const route = useRouter()
@@ -65,7 +66,10 @@ export default function ProductViewScreen(){
             setSellerLastSeen('Offline');
 
           }catch(error){
-            console.error("Failed to get product: ", error)
+            Toast.show({
+                type: 'error',
+                text1: 'Something went wrong'
+            })
           }finally{
             setLoading(false)
           }
@@ -110,8 +114,11 @@ export default function ProductViewScreen(){
                 },
             });
         } catch (error) {
-            console.error('Error opening chat:', error);
-            Alert.alert('Error', 'Could not open chat. Please try again.');
+            Toast.show({
+                type: 'error',
+                text1: 'Error',
+                text2: 'Could not open chat. Please try again.'
+            })
         } finally {
             setLoading(false);
         }
@@ -123,11 +130,11 @@ export default function ProductViewScreen(){
     
 
     if(loading){
-        return(
-        <View>
-            <ActivityIndicator size={'large'}/>
-        </View>
-        )
+        return (
+            <View style={styles.centerContainer}>
+              <ActivityIndicator size="large" color="#6734F2" />
+            </View>
+          );
     }
 
 
@@ -228,15 +235,16 @@ export default function ProductViewScreen(){
                         <View style={styles.adbubble}>
                             <Text>active ads</Text>
                         </View>
+
+                 {/* USER WANT */}
+                <View style={styles.Uwant}>
+                    <Text>{firstName} wants size: {pwSize}</Text>
+                </View>
+
                     </View>
                 </View>
 
-                {/* USER WANT */}
 
-                <View style={styles.Uwant}>
-                    <Text>{firstName} wants size:</Text>
-                    <Text style={{alignSelf: 'flex-end'}}>{pwSize}</Text>
-                </View>
 
             </View>
 
@@ -286,6 +294,13 @@ const styles = StyleSheet.create({
        height: '100%',
        paddingHorizontal: 13
     },
+
+    centerContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+      },
 
     headerContainer : {
         height: 90,

@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Animated,
   Dimensions,
-  Image,
   Modal,
   ScrollView,
   StyleSheet,
@@ -12,20 +11,22 @@ import {
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
-  View,
+  View
 } from 'react-native';
 
 
+
 import CategoryModal from './categoryModal';
-import CheckIcon from './SvgIcons/checkIcon';
 import CloseIcon from './SvgIcons/closeIcon';
 import OptionsIcon from './SvgIcons/OptionsIcon';
-import UploadIcon from './SvgIcons/UplaodIcon';
 
 import Dropdown from './dropdown';
 
 import productService from '@/services/productService';
 import uploadService from '@/services/uploadService';
+import { useRouter } from 'expo-router';
+import Toast from 'react-native-toast-message';
+import ImageSelector from './imageSelector';
 interface UploadModalProps {
   visible: boolean;
   onClose: () => void;
@@ -35,11 +36,13 @@ interface UploadModalProps {
 const { height } = Dimensions.get('screen');
 
 const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
+  const route = useRouter()
   const slideAnim = useRef(new Animated.Value(height)).current;
   const [showRequiredModal, setShowRequiredModel] = useState<boolean>(false)
 
   const [size, setSize] = useState('')
   const sizeOptions = ['S', 'M', 'L', 'XL'];
+  const MAX_IMAGES = 4;
   const [category, setCategory] = useState<string>('');
   const catOptions = ['Cap', 'Shorts', 'Shoes', 'Shirts'];
   const [title, setTitle] = useState<string>('');
@@ -47,6 +50,8 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
   const [wantedCategory, setWantedCategory] = useState<string>(category)
   const [wantedSize, setWantedSize] = useState<string>('')
   const [uploading, setUploading] = useState(false)
+
+  const [error, setError] = useState<string>('')
 
   const productID = useRef<string>('')
   
@@ -81,29 +86,30 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
 }, [visible])
 
 
-  const pickImage = async ()=> {
-     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      allowsEditing: false,
-      aspect: [1, 1],
-      quality: 0.4,
-      allowsMultipleSelection: true,
-      selectionLimit: 4
-     });
+const pickImage = async () => {
+  const remaining = MAX_IMAGES - localImageUris.length;
+  if (remaining <= 0) return;
 
-     if(!result.canceled){
-      const newImageUriS = result.assets.map((asset)=> asset.uri);
-      try{
-        setUploading(true)
-        const productsUris = await uploadService.uploadImages(newImageUriS, 'product')
-        setLocalImageUris((prev)=> [...prev, ...productsUris].slice(0,4));
-      }catch(error){
-        console.log(error)
-      }finally{
-        setUploading(false)
-      }
-     }
+  let result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: 'images',
+    allowsMultipleSelection: true,
+    selectionLimit: remaining, // only allow what's left
+    quality: 0.4,
+  });
+
+  if (!result.canceled) {
+    const newUris = result.assets.map((a) => a.uri);
+    try {
+      setUploading(true);
+      const uploaded = await uploadService.uploadImages(newUris, 'product');
+      setLocalImageUris((prev) => [...prev, ...uploaded].slice(0, MAX_IMAGES));
+    } catch (e) {
+      console.log(e);
+    } finally {
+      setUploading(false);
+    }
   }
+};
 
 
 
@@ -112,6 +118,7 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
  
   const productUploadFunction = async ()=>{
     try{
+      setUploading(true)
       const response = await productService.CreateProduct({
         category: category,
         photo_urls: localImageUris,
@@ -120,15 +127,47 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
       })
       productID.current = response.product_id
       setShowRequiredModel(true)
+      Toast.show({
+        type: 'success',
+        text1: 'Upload Complete'
+      })
       onClose()
-    }catch(error){
-      console.error("Could not create Product: ", error)
+    }catch(error: any){
+      if(!error.response){
+        Toast.show({
+          type: 'error',
+          text1: 'Network Error',
+          text2: 'Check your connection'
+        })
+      }
+
+      switch(error.response.status){
+        case 400:
+          Toast.show({
+            type: 'error',
+            text1: 'Please fill in all the required fields!'
+          })
+          break;
+        case 401:
+          route.push('/(home)/login')
+          break;
+        default:
+          Toast.show({
+            type: 'error',
+            text1: 'Something went wrong',
+            text2: 'Please try again later'
+          })
+      }
+    }finally{
+      setUploading(false)
     }
   }
 
   const productWantSubmit = async () =>{
     setWantedCategory(category)
+    setError('')
     try {
+      setUploading(true)
       await productService.CreateProductWant({
         wantCategory: wantedCategory,
         wantSize: wantedSize,
@@ -137,8 +176,17 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
       setShowRequiredModel(false)
       setCategory('')
       setWantedCategory('')
-    }catch(error){
-      console.log(error)
+    }catch(error: any){
+      switch(error.response?.status){
+        case 400:
+          setError('Please fill in the required information!')
+          break;
+        default:
+          setError('Something went wrong please try again later')  
+      }
+
+    }finally{
+      setUploading(false)
     }
 
 
@@ -199,28 +247,22 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
                 
 
                 {/* IMAGE PICKER */}
-                <View style={{height: 170, maxWidth: '100%', marginTop: 26}}>
-                <Text style={{color: '#292929', fontWeight: '600', fontSize: 16}}>Add photos</Text>
+                <View style={{ marginTop: 26 }}>
+            <Text style={{ color: '#292929', fontWeight: '600', fontSize: 16 }}>
+              Add photos
+             </Text>
+           <ImageSelector
+            images={localImageUris}
+            onImagesChange={setLocalImageUris}
+            onPickImage={pickImage}
+            uploading={uploading}
+            />
+          <View style={{paddingVertical: 10}}> 
+          <Text>• First picture is the title picture</Text>
+          <Text>• Drag & drop photos to change the order</Text>
+          </View>
 
-                {/* Image selector */}
-                <View style={styles.ImageSelectorContainer}>
-                 <UploadIcon onPress={pickImage}  /> 
-                 {localImageUris.map((uri, index)=>(
-                  <View key={index} style={styles.imageSelector}>
-                   <Image source={{uri}} style={styles.image} />
-
-                   {index === 0 && (
-                    <CheckIcon style={{bottom: 10, left: 6}} />
-                   )}
-                   </View>
-
-                 ))}
-                </View>
-
-                <Text>• First picture is the title picture</Text>
-                <Text>• Drag & drop photos to change the order</Text>
-
-                </View>
+</View>
 
                 {/* INPUT LAYER */}
                 <View style={{height: 170, maxWidth: '100%', paddingTop: 15}}>
@@ -308,8 +350,18 @@ const UploadModal: React.FC<UploadModalProps> = ({ visible, onClose }) => {
           onSelect={setWantedSize}
            />
 
+           {error ? (
+          <Text style={{ color: 'red', marginTop: 8, fontSize: 13 }}>
+          {error}
+         </Text>            
+           ): null}
+
            <TouchableOpacity style={styles.PWbtn} onPress={productWantSubmit}>
-            <Text style={{color: 'white'}}>Done</Text>
+            {uploading? (
+              <ActivityIndicator color={'#fff'} />
+            ):(
+              <Text style={{color: 'white'}}>Done</Text>
+            )}
            </TouchableOpacity>
 
       </View>

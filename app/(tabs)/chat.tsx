@@ -6,6 +6,7 @@ import { useState } from "react";
 import messageService from "@/services/messageService";
 import { Conversation } from "@/types/message";
 import { useFocusEffect } from "@react-navigation/native";
+import Toast from "react-native-toast-message";
 
 export default function ChatScreen (){
 
@@ -20,7 +21,10 @@ export default function ChatScreen (){
             setConversations(data)
             setIsloading(false)
         } catch(error){
-            console.error("Error loading conversations: ", error)
+            Toast.show({
+              type: 'error',
+              text1: 'Error loading conversations'
+            })
             setIsloading(false)
         }
     }

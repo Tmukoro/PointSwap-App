@@ -2,13 +2,15 @@ import ItemBox from "@/components/itemBox";
 import SortIcon from "@/components/SvgIcons/sortIcon";
 import { FeedItem, FeedResponse } from "@/types/products";
 import axios from "axios";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function ThirdRoute  () {
+
     const route = useRouter()
+
     const apiUrl = "http://192.168.0.134:8080/pointSwapApi/v1/products?category=Shoes";
 
     const [feedData, setFeedData] = useState<FeedItem[]>([]);
@@ -20,7 +22,7 @@ export default function ThirdRoute  () {
             setLoading(true)
             const token = await SecureStore.getItemAsync('token')
             const response = await axios.get<FeedResponse>(apiUrl, {
-                headers: {
+                headers : {
                     Authorization: `Bearer ${token}`
                 }
             });
@@ -34,10 +36,14 @@ export default function ThirdRoute  () {
         }
     };
 
-    useEffect(()=>{
-        fetchFeed();
-    }, []);
-
+    useFocusEffect(
+        useCallback(() => {
+            if (feedData.length === 0) {
+                fetchFeed();
+            }
+        }, [feedData])
+    );
+    
     const handlePress = (productID: string)=>{
         route.push({
            pathname: '/(tabs)/productView',
@@ -78,7 +84,7 @@ export default function ThirdRoute  () {
                        title={item.title}
                        estimated_size={item.estimated_size}
                        image_url={item.image_url}
-                       onPress={()=>handlePress(item.product_id)}     
+                       onPress={()=> handlePress(item.product_id)}     
                     />
                  )}
                  refreshing={loading}
@@ -102,14 +108,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingTop: 20,
-        paddingBottom: 15
+        paddingBottom: 15,
+        paddingHorizontal: 10
     },
 
     sortbutton : {
-      paddingRight: 20,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 3
+      gap: 3,
+      paddingHorizontal: 10
     },
 
     itemBox : {

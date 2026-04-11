@@ -1,7 +1,7 @@
 import LocatedIcon from "@/components/SvgIcons/locationfound";
 import { ChevronRight } from "@tamagui/lucide-icons";
 
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 
@@ -10,6 +10,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 export default function LocationFoundScreen (){
 
     const route = useRouter();
+    const { state, camp } = useLocalSearchParams();
 
     return(
 
@@ -28,7 +29,7 @@ export default function LocationFoundScreen (){
         <Text style={{fontSize: 24, fontWeight: '600', marginTop: 30, paddingLeft: 21}}>We&apos;ve located you!</Text>
 
         <View style={{marginTop: 8, width: 310, marginLeft: 21 }}>
-        <Text style={{fontSize: 16, color: '#292929', fontWeight: '400'}}>You&apos;re in Lagos State camp</Text>
+        <Text style={{fontSize: 16, color: '#292929', fontWeight: '400'}}>You&apos;re in {state}, {camp}</Text>
         </View>
 
 

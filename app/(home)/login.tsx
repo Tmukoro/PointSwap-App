@@ -9,11 +9,12 @@ import { useState } from "react";
 
 
 import messageService from "@/services/messageService";
+import oauthService from "@/services/oauthService";
 import userStatus from "@/services/userStatus";
 import { LoginResponse } from "@/types/auth";
 import axios from "axios";
 import * as SecureStore from 'expo-secure-store';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Keyboard, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 
 
@@ -29,6 +30,7 @@ export default function LoginScreen(){
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string>('')
+  const [loading, setLoading] = useState<boolean>(false)
 
   const LoginFunction = async () => {
     setError('')
@@ -43,6 +45,8 @@ export default function LoginScreen(){
     }
 
     try {
+      setLoading(true)
+      Keyboard.dismiss()
       const response = await axios.post<LoginResponse>(apiUrl, loginReq, {
         headers : {"Content-Type" : "application/json"}
       });
@@ -59,18 +63,46 @@ export default function LoginScreen(){
       userStatus.setAuthToken(token);
       await userStatus.updateStatus(true);
 
+
       router.push('/home')
 
 
     } catch(error: any){
+      if(!error.response){
+        setError('Network Error Check your connection')
+      }
       if (error.response?.status === 401 || 400) {
         setError('Invalid email or password');
       } else {
         setError('Something went wrong. Try again.');
       }
+    }finally{
+      setLoading(false)
     }
 
   }
+
+  const handleGoogleSignIn = async () => {
+    try {
+      const result = await oauthService.signInWithGoogle();
+      
+      if (result) {
+        // Save token
+        await SecureStore.setItemAsync('token', result.token);
+        await SecureStore.setItemAsync('user_id', result.userId);
+  
+        // Navigate based on profile completion
+        if (result.profileComplete) {
+          router.replace('/(tabs)/home');
+        } else {
+          router.replace('/(home)/profile');
+        }
+      }
+    } catch (error) {
+      console.error('Sign in failed:', error);
+      alert('Sign in failed');
+    }
+  };
 
 
 
@@ -128,7 +160,11 @@ export default function LoginScreen(){
 
            
            <TouchableOpacity style={styles.InputButton} onPress={LoginFunction}>
-            <Text style={{textAlign: 'center', color: 'white'}}>Login</Text>
+            {loading ?(
+              <ActivityIndicator color={'#fff'} />
+            ):(
+              <Text style={{textAlign: 'center', color: 'white'}}>Login</Text>
+            )}
            </TouchableOpacity>
               
           </View>

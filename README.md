@@ -316,7 +316,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 👨‍💻 Author
 
 **Mukoro Oghenetega Daniel**
-- LinkedIn: [linkedin.com/in/yourprofile](linkedin.com/in/oghenetega-mukoro)
+- LinkedIn: [linkedin.com/in/oghenetega-mukoro](linkedin.com/in/oghenetega-mukoro)
 - Email: tmukoro62@gmail.com
 
 ---

@@ -72,6 +72,8 @@ A React Native mobile application built with Expo that connects Nigerian NYSC co
 
 <!-- Add screenshots here when available -->
 <img width="236" height="516" alt="image" src="https://github.com/user-attachments/assets/fc86ce55-10b3-4d56-940b-d8abc958ec3f" />
+<img width="254" height="550" alt="image" src="https://github.com/user-attachments/assets/3c970411-48a3-4b98-8980-f4eb92a40292" />
+
 
 
 ---

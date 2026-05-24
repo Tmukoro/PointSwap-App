@@ -327,4 +327,4 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ---
 
-_Note: This is the frontend repository. For the backend (Go + PostgreSQL), see [pointswap-backend](https://github.com/yourusername/pointswap-backend)_
+_Note: This is the frontend repository. For the backend (Go + PostgreSQL), see [pointswap-backend](https://github.com/Tmukoro/PointSwap-API)_
